@@ -1,0 +1,26 @@
+[project]
+name = "fast-linkedin-scraper"
+version = "0.1.0"
+description = "Fast LinkedIn scraper using Playwright"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "playwright>=1.53.0",
+    "pydantic>=2.11.7",
+    "python-dotenv>=1.1.1",
+    "rapidfuzz>=3.13.0",
+    "suffix-trees>=0.3.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["fast_linkedin_scraper*"]
+exclude = ["old_selenium_files*", "tests*"]
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.1a14",
+]

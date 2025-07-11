@@ -1,0 +1,1741 @@
+TITLE: Playwright Python Locator API Reference
+DESCRIPTION: Reference for Playwright's `Locator` class and common `Page` methods used for element location. Locators are central to Playwright's auto-waiting and retry-ability, representing a way to find elements on the page at any moment.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: APIDOC
+CODE:
+```
+Locator:
+  Description: Represents a way to find element(s) on the page at any moment.
+
+Page Methods for Locators:
+  get_by_role(role: str, name: str = None, exact: bool = False, ...) -> Locator
+    Description: Locate by explicit and implicit accessibility attributes.
+  get_by_text(text: str, exact: bool = False, ...) -> Locator
+    Description: Locate by text content.
+  get_by_label(label: str, exact: bool = False, ...) -> Locator
+    Description: Locate a form control by associated label's text.
+  get_by_placeholder(placeholder: str, exact: bool = False, ...) -> Locator
+    Description: Locate an input by placeholder.
+  get_by_alt_text(alt_text: str, exact: bool = False, ...) -> Locator
+    Description: Locate an element, usually image, by its text alternative.
+  get_by_title(title: str, exact: bool = False, ...) -> Locator
+    Description: Locate an element by its title attribute.
+  get_by_test_id(test_id: str, ...) -> Locator
+    Description: Locate an element based on its `data-testid` attribute (other attributes can be configured).
+```
+
+----------------------------------------
+
+TITLE: Install Playwright Browser Binaries
+DESCRIPTION: Executes the Playwright command to download and install the required browser binaries (Chromium, WebKit, Firefox) that Playwright uses for automation and testing.
+SOURCE: https://playwright.dev/python/docs/intro/intro
+
+LANGUAGE: Python
+CODE:
+```
+playwright install
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: Fill an element on the page
+DESCRIPTION: The `page.fill()` method waits for an element matching a selector, performs actionability checks, focuses the element, fills it with the provided value, and triggers an `input` event. It can clear an input field by passing an empty string. This method is intended for `<input>`, `<textarea>`, or `[contenteditable]` elements, or associated controls within a `<label>`. It is discouraged; use `locator.fill()` instead.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: python
+CODE:
+```
+page.fill(selector, value)
+page.fill(selector, value, **kwargs)
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.fill(selector: str, value: str, **kwargs)
+  selector: str
+    A selector to search for an element. If there are multiple elements satisfying the selector, the first will be used.
+  value: str
+    Value to fill for the <input>, <textarea> or [contenteditable] element.
+  force: bool (optional) (Added in: v1.13)
+    Whether to bypass the actionability checks. Defaults to `false`.
+  no_wait_after: bool (optional) (Deprecated)
+    This option has no effect.
+  strict: bool (optional) (Added in: v1.14)
+    When true, the call requires selector to resolve to a single element. If given selector resolves to more than one element, the call throws an exception.
+  timeout: float (optional)
+    Maximum time in milliseconds. Defaults to `30000` (30 seconds). Pass `0` to disable timeout.
+Returns: NoneType
+```
+
+----------------------------------------
+
+TITLE: Launch Browser with Playwright Sync API
+DESCRIPTION: Demonstrates how to initialize Playwright in synchronous mode, launch a Chromium browser, create a new page, navigate to a URL, and close the browser. This is a typical example of using Playwright for automation.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-playwright
+
+LANGUAGE: Python
+CODE:
+```
+from playwright.sync_api import sync_playwright, Playwright
+
+def run(playwright: Playwright):
+    chromium = playwright.chromium # or "firefox" or "webkit".
+    browser = chromium.launch()
+    page = browser.new_page()
+    page.goto("http://example.com")
+    # other actions...
+    browser.close()
+
+with sync_playwright() as playwright:
+    run(playwright)
+```
+
+----------------------------------------
+
+TITLE: Playwright Python page.goto API Reference
+DESCRIPTION: Detailed API documentation for the `page.goto` method in Playwright for Python, outlining its purpose, arguments (URL, referer, timeout, wait_until), their types, descriptions, and the method's return type.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.goto
+  Description: Returns the main resource response. In case of multiple redirects, the navigation will resolve with the first non-redirect response.
+  Arguments:
+    url:
+      Type: str
+      Description: URL to navigate page to. The url should include scheme, e.g. `https://`. When a `base_url` via the context options was provided and the passed URL is a path, it gets merged via the `new URL()` constructor.
+    referer:
+      Type: str (optional)
+      Description: Referer header value. If provided it will take preference over the referer header value set by `page.set_extra_http_headers()`.
+    timeout:
+      Type: float (optional)
+      Description: Maximum operation time in milliseconds, defaults to 30 seconds, pass `0` to disable timeout. The default value can be changed by using the `browser_context.set_default_navigation_timeout()`, `browser_context.set_default_timeout()`, `page.set_default_navigation_timeout()` or `page.set_default_timeout()` methods.
+    wait_until:
+      Type: "load" | "domcontentloaded" | "networkidle" | "commit" (optional)
+      Description: When to consider operation succeeded, defaults to `load`. Events can be either: `'domcontentloaded'`, `'load'`, `'networkidle'` (DISCOURAGED), or `'commit'`.
+  Returns:
+    Type: NoneType | Response
+    Description: The method either throws an error or returns a main resource response. The only exceptions are navigation to `about:blank` or navigation to the same URL with a different hash, which would succeed and return `null`.
+```
+
+----------------------------------------
+
+TITLE: Using Playwright Pytest Fixtures in Test Functions
+DESCRIPTION: Demonstrates how to integrate Playwright's pytest fixtures, such as `fixture_name`, into a test function by accepting them as arguments. These fixtures provide access to Playwright browser contexts and pages.
+SOURCE: https://playwright.dev/python/docs/intro/test-runners
+
+LANGUAGE: Python
+CODE:
+```
+def test_my_app_is_working(fixture_name):
+    pass
+    # Test using fixture_name
+    # ...
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: to_be_visible API Reference
+DESCRIPTION: API documentation for the `to_be_visible` assertion, outlining its optional `timeout` and `visible` arguments, and its return type.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locatorassertions
+
+LANGUAGE: APIDOC
+CODE:
+```
+to_be_visible:
+  Arguments:
+    timeout: float (optional)
+      Time to retry the assertion for in milliseconds. Defaults to 5000.
+    visible: bool (optional)
+  Returns:
+    NoneType
+```
+
+----------------------------------------
+
+TITLE: Navigate to URL with Playwright Python
+DESCRIPTION: Demonstrates how to navigate a Playwright page to a specified URL using `page.goto()`. Playwright waits for the page's 'load' event before proceeding, ensuring the primary content is available.
+SOURCE: https://playwright.dev/python/docs/intro/navigations
+
+LANGUAGE: Python
+CODE:
+```
+# Navigate the page
+page.goto("https://example.com")
+```
+
+LANGUAGE: Python
+CODE:
+```
+# Navigate the page
+await page.goto("https://example.com")
+```
+
+----------------------------------------
+
+TITLE: Install Playwright Pytest Plugin via pip
+DESCRIPTION: Installs the official Playwright Pytest plugin using pip, the Python package installer. This plugin is recommended for writing end-to-end tests with Playwright in Python.
+SOURCE: https://playwright.dev/python/docs/intro/intro
+
+LANGUAGE: Python
+CODE:
+```
+pip install pytest-playwright
+```
+
+----------------------------------------
+
+TITLE: Interacting with an element using Locator (Recommended)
+DESCRIPTION: Shows the recommended way to interact with elements using `Locator` objects. Unlike `ElementHandle`, `Locator` re-locates the element on each action, ensuring interaction with the up-to-date DOM element and preventing stale element issues.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-elementhandle
+
+LANGUAGE: Python (Sync)
+CODE:
+```
+locator = page.get_by_text("Submit")
+locator.hover()
+locator.click()
+```
+
+LANGUAGE: Python (Async)
+CODE:
+```
+locator = page.get_by_text("Submit")
+await locator.hover()
+await locator.click()
+```
+
+----------------------------------------
+
+TITLE: Run Playwright Codegen for Test Generation
+DESCRIPTION: This command launches the Playwright test generator, opening a browser window for interaction and an Inspector window for recording. The URL is optional; if omitted, it can be entered directly into the browser later. This tool helps in quickly scaffolding new tests by recording user actions.
+SOURCE: https://playwright.dev/python/docs/intro/codegen-intro
+
+LANGUAGE: CLI
+CODE:
+```
+playwright codegen demo.playwright.dev/todomvc
+```
+
+----------------------------------------
+
+TITLE: Get Playwright Page Title
+DESCRIPTION: This method returns the current title of the page.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: python
+CODE:
+```
+page.title()
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.title()
+Returns: str
+```
+
+----------------------------------------
+
+TITLE: Launch Browser and Create Page
+DESCRIPTION: Illustrates how to initialize Playwright, launch a browser instance (e.g., Firefox), create a new page, navigate to a specified URL, and then close the browser. Examples are provided for both synchronous and asynchronous Python APIs.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-browser
+
+LANGUAGE: python
+CODE:
+```
+from playwright.sync_api import sync_playwright, Playwright
+
+def run(playwright: Playwright):
+    firefox = playwright.firefox
+    browser = firefox.launch()
+    page = browser.new_page()
+    page.goto("https://example.com")
+    browser.close()
+
+with sync_playwright() as playwright:
+    run(playwright)
+
+```
+
+LANGUAGE: python
+CODE:
+```
+import asyncio
+from playwright.async_api import async_playwright, Playwright
+
+async def run(playwright: Playwright):
+    firefox = playwright.firefox
+    browser = await firefox.launch()
+    page = await browser.new_page()
+    await page.goto("https://example.com")
+    await browser.close()
+
+async def main():
+    async with async_playwright() as playwright:
+        await run(playwright)
+asyncio.run(main())
+
+```
+
+----------------------------------------
+
+TITLE: Install Playwright with Pip
+DESCRIPTION: This snippet provides the commands to install Playwright using pip, including upgrading pip itself and then installing the Playwright package along with its necessary browser binaries.
+SOURCE: https://playwright.dev/python/docs/intro/library
+
+LANGUAGE: shell
+CODE:
+```
+pip install --upgrade pip
+pip install playwright
+playwright install
+```
+
+----------------------------------------
+
+TITLE: Basic Page Navigation and Interaction in Playwright Python
+DESCRIPTION: Demonstrates fundamental operations on a Playwright Page object, including navigating to a URL, filling input fields, clicking elements, and retrieving the current page URL. Examples are provided for both synchronous and asynchronous Python APIs.
+SOURCE: https://playwright.dev/python/docs/intro/pages
+
+LANGUAGE: Python
+CODE:
+```
+page = context.new_page()
+
+# Navigate explicitly, similar to entering a URL in the browser.
+page.goto('http://example.com')
+# Fill an input.
+page.locator('#search').fill('query')
+
+# Navigate implicitly by clicking a link.
+page.locator('#submit').click()
+# Expect a new url.
+print(page.url)
+```
+
+LANGUAGE: Python
+CODE:
+```
+page = await context.new_page()
+
+# Navigate explicitly, similar to entering a URL in the browser.
+await page.goto('http://example.com')
+# Fill an input.
+await page.locator('#search').fill('query')
+
+# Navigate implicitly by clicking a link.
+await page.locator('#submit').click()
+# Expect a new url.
+print(await page.url)
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: Basic Test Structure and Assertions
+DESCRIPTION: This comprehensive example demonstrates how to structure a basic Playwright test in Python. It showcases navigating to a URL, asserting the page title using a regular expression, clicking on an element identified by its role and name, and finally asserting the visibility of a heading after the interaction.
+SOURCE: https://playwright.dev/python/docs/intro/writing-tests
+
+LANGUAGE: Python
+CODE:
+```
+import re
+from playwright.sync_api import Page, expect
+
+def test_has_title(page: Page):
+    page.goto("https://playwright.dev/")
+
+    # Expect a title "to contain" a substring.
+    expect(page).to_have_title(re.compile("Playwright"))
+
+def test_get_started_link(page: Page):
+    page.goto("https://playwright.dev/")
+
+    # Click the get started link.
+    page.get_by_role("link", name="Get started").click()
+
+    # Expects page to have a heading with the name of Installation.
+    expect(page.get_by_role("heading", name="Installation")).to_be_visible()
+```
+
+----------------------------------------
+
+TITLE: Click Button by Text (Login/Sign In)
+DESCRIPTION: Demonstrates how to click a button using Playwright's `has-text` pseudo-class to match elements containing specific text, useful for login/sign-in buttons. It combines two text conditions using a CSS comma separator for 'OR' logic.
+SOURCE: https://playwright.dev/python/docs/intro/other-locators
+
+LANGUAGE: Python (Sync)
+CODE:
+```
+page.locator('button:has-text("Log in"), button:has-text("Sign in")').click()
+```
+
+LANGUAGE: Python (Async)
+CODE:
+```
+await page.locator('button:has-text("Log in"), button:has-text("Sign in")').click()
+```
+
+----------------------------------------
+
+TITLE: Handle File Uploads with Playwright FileChooser
+DESCRIPTION: This snippet demonstrates how to interact with file choosers in Playwright for Python. It shows both synchronous and asynchronous approaches to waiting for a file chooser event, triggering the upload dialog by clicking an element, and then setting the files to be uploaded using the captured FileChooser object. The `expect_file_chooser` context manager ensures the file chooser is captured before proceeding.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-filechooser
+
+LANGUAGE: Python (Sync)
+CODE:
+```
+with page.expect_file_chooser() as fc_info:
+    page.get_by_text("Upload file").click()
+file_chooser = fc_info.value
+file_chooser.set_files("myfile.pdf")
+```
+
+LANGUAGE: Python (Async)
+CODE:
+```
+async with page.expect_file_chooser() as fc_info:
+    await page.get_by_text("Upload file").click()
+file_chooser = await fc_info.value
+await file_chooser.set_files("myfile.pdf")
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: Using Locators for Element Interaction
+DESCRIPTION: Demonstrates how to use Playwright's `page.get_by_*` locator methods to interact with web elements, including filling text fields, clicking buttons, and asserting element visibility. This example simulates a user login flow.
+SOURCE: https://playwright.dev/python/docs/intro/release-notes
+
+LANGUAGE: Python
+CODE:
+```
+page.get_by_label("User Name").fill("John")
+
+page.get_by_label("Password").fill("secret-password")
+
+page.get_by_role("button", name="Sign in").click()
+
+expect(page.get_by_text("Welcome, John!")).to_be_visible()
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: Locators API Usage
+DESCRIPTION: Illustrates the basic usage of the new Locators API in Playwright Python. Locators provide a robust way to interact with elements by capturing the logic to retrieve them at any given moment, unlike ElementHandles which point to a specific element. Locators are 'strict' by default.
+SOURCE: https://playwright.dev/python/docs/intro/release-notes
+
+LANGUAGE: python
+CODE:
+```
+locator = page.locator("button")
+locator.click()
+```
+
+----------------------------------------
+
+TITLE: Locate and Interact with Elements in Playwright Python
+DESCRIPTION: Demonstrates how to locate elements using `get_by_label`, `get_by_role`, and `get_by_text` methods in Playwright's Python API, then interact with them (fill, click) and assert visibility. Examples are provided for both synchronous and asynchronous execution models.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: Python (Sync)
+CODE:
+```
+page.get_by_label("User Name").fill("John")
+
+page.get_by_label("Password").fill("secret-password")
+
+page.get_by_role("button", name="Sign in").click()
+
+expect(page.get_by_text("Welcome, John!")).to_be_visible()
+```
+
+LANGUAGE: Python (Async)
+CODE:
+```
+await page.get_by_label("User Name").fill("John")
+
+await page.get_by_label("Password").fill("secret-password")
+
+await page.get_by_role("button", name="Sign in").click()
+
+await expect(page.get_by_text("Welcome, John!")).to_be_visible()
+```
+
+----------------------------------------
+
+TITLE: Locate and Click Element (Two Steps)
+DESCRIPTION: Demonstrates how to create a Playwright Locator for an element using its role and name, and then perform a click action on it. This approach separates locator creation from the action, which can be useful for reusability.
+SOURCE: https://playwright.dev/python/docs/intro/writing-tests
+
+LANGUAGE: python
+CODE:
+```
+# Create a locator.
+get_started = page.get_by_role("link", name="Get started")
+
+# Click it.
+get_started.click()
+```
+
+----------------------------------------
+
+TITLE: Basic Asynchronous Playwright Usage
+DESCRIPTION: This example illustrates how to use Playwright's asynchronous API with `asyncio` to launch a Chromium browser, navigate to a URL, retrieve the page title, and close the browser. It's suitable for modern Python projects leveraging `asyncio`.
+SOURCE: https://playwright.dev/python/docs/intro/library
+
+LANGUAGE: python
+CODE:
+```
+import asyncio
+from playwright.async_api import async_playwright
+
+async def main():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+        await page.goto("https://playwright.dev")
+        print(await page.title())
+        await browser.close()
+
+asyncio.run(main())
+```
+
+----------------------------------------
+
+TITLE: Automate Login with Playwright API
+DESCRIPTION: This example illustrates how to programmatically interact with a login form using Playwright's API to achieve authentication within a browser context. It presents both synchronous and asynchronous Python implementations for navigating to a login page, filling in user credentials, and submitting the form.
+SOURCE: https://playwright.dev/python/docs/intro/auth
+
+LANGUAGE: Python (Sync)
+CODE:
+```
+page = context.new_page()
+page.goto('https://github.com/login')
+
+# Interact with login form
+page.get_by_label("Username or email address").fill("username")
+page.get_by_label("Password").fill("password")
+page.get_by_role("button", name="Sign in").click()
+# Continue with the test
+```
+
+LANGUAGE: Python (Async)
+CODE:
+```
+page = await context.new_page()
+await page.goto('https://github.com/login')
+
+# Interact with login form
+await page.get_by_label("Username or email address").fill("username")
+await page.get_by_label("Password").fill("password")
+await page.get_by_role("button", name="Sign in").click()
+# Continue with the test
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: Using Strict Mode for Selectors
+DESCRIPTION: Demonstrates how to use the new 'strict' mode in Playwright Python. When enabled, this mode ensures that a selector points to a single element, throwing an error if multiple elements match, thereby preventing selector ambiguity in automation tests.
+SOURCE: https://playwright.dev/python/docs/intro/release-notes
+
+LANGUAGE: python
+CODE:
+```
+# This will throw if you have more than one button!
+page.click("button", strict=True)
+```
+
+----------------------------------------
+
+TITLE: Playwright Python Test: Verify UI-Created Issue via API
+DESCRIPTION: This test showcases the reverse hybrid approach: creating a GitHub issue through the user interface using Playwright's browser automation, then retrieving the issue details via the GitHub API to confirm its successful creation and content. It demonstrates validating UI actions with API calls.
+SOURCE: https://playwright.dev/python/docs/intro/api-testing
+
+LANGUAGE: python
+CODE:
+```
+def test_last_created_issue_should_be_on_the_server(api_request_context: APIRequestContext, page: Page) -> None:
+    page.goto(f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/issues")
+    page.locator("text=New issue").click()
+    page.locator("[aria-label='Title']").fill("Bug report 1")
+    page.locator("[aria-label='Comment body']").fill("Bug description")
+    page.locator("text=Submit new issue").click()
+    issue_id = page.url.split("/")[-1]
+
+    new_issue = api_request_context.get(f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/issues/{issue_id}")
+    assert new_issue.ok
+    assert new_issue.json()["title"] == "[Bug] report 1"
+    assert new_issue.json()["body"] == "Bug description"
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: Navigating to a URL
+DESCRIPTION: This snippet illustrates the fundamental action of navigating a Playwright Page object to a specified URL. The `page.goto()` method is used, and Playwright automatically handles waiting for the page to reach a loaded state before allowing further test execution, ensuring stability.
+SOURCE: https://playwright.dev/python/docs/intro/writing-tests
+
+LANGUAGE: Python
+CODE:
+```
+page.goto("https://playwright.dev/")
+```
+
+----------------------------------------
+
+TITLE: Locating Elements with page.get_by_role (Sync)
+DESCRIPTION: Demonstrates synchronous usage of `page.get_by_role` in Playwright Python to locate a heading, checkbox, and button element by their ARIA roles and accessible names. This snippet uses standard synchronous Playwright commands.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: Python
+CODE:
+```
+expect(page.get_by_role("heading", name="Sign up")).to_be_visible()
+
+page.get_by_role("checkbox", name="Subscribe").check()
+
+page.get_by_role("button", name=re.compile("submit", re.IGNORECASE)).click()
+```
+
+----------------------------------------
+
+TITLE: Playwright Locator API Basic Actions Reference
+DESCRIPTION: A comprehensive reference of common actions available via Playwright's Locator API. This includes methods for interacting with various form elements and performing user actions like checking checkboxes, clicking, hovering, filling text fields, focusing elements, pressing keys, uploading files, and selecting options from dropdowns.
+SOURCE: https://playwright.dev/python/docs/intro/writing-tests
+
+LANGUAGE: APIDOC
+CODE:
+```
+Locator:
+  check(): Check the input checkbox
+  click(): Click the element
+  uncheck(): Uncheck the input checkbox
+  hover(): Hover mouse over the element
+  fill(): Fill the form field, input text
+  focus(): Focus the element
+  press(): Press single key
+  set_input_files(): Pick files to upload
+  select_option(): Select option in the drop down
+```
+
+----------------------------------------
+
+TITLE: Locating and Filling Input by Placeholder in Playwright Python
+DESCRIPTION: Demonstrates how to use `locator.get_by_placeholder` to find an input element by its placeholder text and then fill it. Includes both synchronous and asynchronous code examples for Playwright in Python.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locator
+
+LANGUAGE: python
+CODE:
+```
+page.get_by_placeholder("name@example.com").fill("playwright@microsoft.com")
+```
+
+LANGUAGE: python
+CODE:
+```
+await page.get_by_placeholder("name@example.com").fill("playwright@microsoft.com")
+```
+
+----------------------------------------
+
+TITLE: Locating Elements by ARIA Role with Playwright Python's get_by_role
+DESCRIPTION: Demonstrates how to use `locator.get_by_role` in Playwright Python to select elements based on their ARIA roles and accessible names. It includes examples for headings, checkboxes, and buttons, showing both synchronous and asynchronous usage patterns. This method is crucial for robust and accessible element selection.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locator
+
+LANGUAGE: Python
+CODE:
+```
+expect(page.get_by_role("heading", name="Sign up")).to_be_visible()
+
+page.get_by_role("checkbox", name="Subscribe").check()
+
+page.get_by_role("button", name=re.compile("submit", re.IGNORECASE)).click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+await expect(page.get_by_role("heading", name="Sign up")).to_be_visible()
+
+await page.get_by_role("checkbox", name="Subscribe").check()
+
+await page.get_by_role("button", name=re.compile("submit", re.IGNORECASE)).click()
+```
+
+----------------------------------------
+
+TITLE: Complete Playwright Python API Test for GitHub
+DESCRIPTION: This snippet demonstrates a full Playwright Python API testing setup for GitHub. It includes session-scoped fixtures for API context and repository creation/deletion, along with tests for creating bug reports and feature requests via the GitHub API. It uses environment variables for authentication.
+SOURCE: https://playwright.dev/python/docs/intro/api-testing
+
+LANGUAGE: python
+CODE:
+```
+from enum import auto
+import os
+from typing import Generator
+
+import pytest
+from playwright.sync_api import Playwright, Page, APIRequestContext, expect
+
+GITHUB_API_TOKEN = os.getenv("GITHUB_API_TOKEN")
+assert GITHUB_API_TOKEN, "GITHUB_API_TOKEN is not set"
+
+GITHUB_USER = os.getenv("GITHUB_USER")
+assert GITHUB_USER, "GITHUB_USER is not set"
+
+GITHUB_REPO = "test"
+
+@pytest.fixture(scope="session")
+def api_request_context(
+    playwright: Playwright,
+) -> Generator[APIRequestContext, None, None]:
+    headers = {
+        # We set this header per GitHub guidelines.
+        "Accept": "application/vnd.github.v3+json",
+        # Add authorization token to all requests.
+        # Assuming personal access token available in the environment.
+        "Authorization": f"token {GITHUB_API_TOKEN}",
+    }
+    request_context = playwright.request.new_context(
+        base_url="https://api.github.com", extra_http_headers=headers
+    )
+    yield request_context
+    request_context.dispose()
+
+@pytest.fixture(scope="session", autouse=True)
+def create_test_repository(
+    api_request_context: APIRequestContext,
+) -> Generator[None, None, None]:
+    # Before all
+    new_repo = api_request_context.post("/user/repos", data={"name": GITHUB_REPO})
+    assert new_repo.ok
+    yield
+    # After all
+    deleted_repo = api_request_context.delete(f"/repos/{GITHUB_USER}/{GITHUB_REPO}")
+    assert deleted_repo.ok
+
+def test_should_create_bug_report(api_request_context: APIRequestContext) -> None:
+    data = {
+        "title": "[Bug] report 1",
+        "body": "Bug description",
+    }
+    new_issue = api_request_context.post(
+        f"/repos/{GITHUB_USER}/{GITHUB_REPO}/issues", data=data
+    )
+    assert new_issue.ok
+
+    issues = api_request_context.get(f"/repos/{GITHUB_USER}/{GITHUB_REPO}/issues")
+    assert issues.ok
+    issues_response = issues.json()
+    issue = list(
+        filter(lambda issue: issue["title"] == "[Bug] report 1", issues_response)
+    )[0]
+    assert issue
+    assert issue["body"] == "Bug description"
+
+def test_should_create_feature_request(api_request_context: APIRequestContext) -> None:
+    data = {
+        "title": "[Feature] request 1",
+        "body": "Feature description",
+    }
+    new_issue = api_request_context.post(
+        f"/repos/{GITHUB_USER}/{GITHUB_REPO}/issues", data=data
+    )
+    assert new_issue.ok
+
+    issues = api_request_context.get(f"/repos/{GITHUB_USER}/{GITHUB_REPO}/issues")
+    assert issues.ok
+    issues_response = issues.json()
+    issue = list(
+        filter(lambda issue: issue["title"] == "[Feature] request 1", issues_response)
+    )[0]
+    assert issue
+    assert issue["body"] == "Feature description"
+```
+
+----------------------------------------
+
+TITLE: Combine Locators with Logical AND (Python)
+DESCRIPTION: Creates a new locator that matches elements satisfying both the current locator and an additional argument locator. This allows for more precise element selection by combining multiple conditions.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locator
+
+LANGUAGE: python
+CODE:
+```
+button = page.get_by_role("button").and_(page.getByTitle("Subscribe"))
+```
+
+LANGUAGE: python
+CODE:
+```
+button = page.get_by_role("button").and_(page.getByTitle("Subscribe"))
+```
+
+----------------------------------------
+
+TITLE: expect(locator).to_be_visible()
+DESCRIPTION: Asserts that the target element is visible on the page. This verifies that the element is rendered and not hidden by CSS, JavaScript, or other means, ensuring it's interactable.
+SOURCE: https://playwright.dev/python/docs/intro/test-assertions
+
+LANGUAGE: APIDOC
+CODE:
+```
+expect(locator).to_be_visible()
+  Description: Element is visible
+```
+
+----------------------------------------
+
+TITLE: Navigate and Click Element with Playwright Python
+DESCRIPTION: Illustrates navigating to a URL and then interacting with an element on the page. Playwright's auto-waiting mechanism ensures the target element is actionable before attempting the click, simplifying interaction with dynamic content.
+SOURCE: https://playwright.dev/python/docs/intro/navigations
+
+LANGUAGE: Python
+CODE:
+```
+# Navigate and click element
+# Click will auto-wait for the element
+page.goto("https://example.com")
+page.get_by_text("example domain").click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+# Navigate and click element
+# Click will auto-wait for the element
+await page.goto("https://example.com")
+await page.get_by_text("example domain").click()
+```
+
+----------------------------------------
+
+TITLE: Locate Elements using CSS or XPath in Playwright Python
+DESCRIPTION: Illustrates how to use `page.locator()` for finding elements with CSS or XPath selectors. Playwright automatically detects the selector type. The section also provides examples of 'bad practice' long CSS and XPath chains, emphasizing their instability due to DOM structure changes.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: Python
+CODE:
+```
+page.locator("css=button").click()
+page.locator("xpath=//button").click()
+
+page.locator("button").click()
+page.locator("//button").click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+await page.locator("css=button").click()
+await page.locator("xpath=//button").click()
+
+await page.locator("button").click()
+await page.locator("//button").click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+page.locator(
+    "#tsf > div:nth-child(2) > div.A8SBwf > div.RNNXgb > div > div.a4bIc > input"
+).click()
+
+page.locator('//*[@id="tsf"]/div[2]/div[1]/div[1]/div/div[2]/input').click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+await page.locator(
+    "#tsf > div:nth-child(2) > div.A8SBwf > div.RNNXgb > div > div.a4bIc > input"
+).click()
+
+await page.locator('//*[@id="tsf"]/div[2]/div[1]/div[1]/div/div[2]/input').click()
+```
+
+----------------------------------------
+
+TITLE: Assert Locator Text with Playwright Python
+DESCRIPTION: These examples demonstrate how to use `expect(locator).to_have_text()` with Playwright's synchronous and asynchronous APIs to assert that a locator's text content matches a specific value after a user interaction. It waits for the element with class 'status' to have the text 'Submitted'.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locatorassertions
+
+LANGUAGE: Python (Sync)
+CODE:
+```
+from playwright.sync_api import Page, expect
+
+def test_status_becomes_submitted(page: Page) -> None:
+    # ..
+    page.get_by_role("button").click()
+    expect(page.locator(".status")).to_have_text("Submitted")
+```
+
+LANGUAGE: Python (Async)
+CODE:
+```
+from playwright.async_api import Page, expect
+
+async def test_status_becomes_submitted(page: Page) -> None:
+    # ..
+    await page.get_by_role("button").click()
+    await expect(page.locator(".status")).to_have_text("Submitted")
+```
+
+----------------------------------------
+
+TITLE: Basic Synchronous Playwright Usage
+DESCRIPTION: This example demonstrates how to use Playwright's synchronous API to launch a Chromium browser, open a new page, navigate to a URL, print the page title, and then close the browser.
+SOURCE: https://playwright.dev/python/docs/intro/library
+
+LANGUAGE: python
+CODE:
+```
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_page()
+    page.goto("https://playwright.dev")
+    print(page.title())
+    browser.close()
+```
+
+----------------------------------------
+
+TITLE: Launch Browser with Playwright Async API
+DESCRIPTION: Illustrates how to use Playwright in asynchronous mode with `asyncio` to launch a Chromium browser, open a new page, navigate, and close the browser. This approach is suitable for concurrent operations.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-playwright
+
+LANGUAGE: Python
+CODE:
+```
+import asyncio
+from playwright.async_api import async_playwright, Playwright
+
+async def run(playwright: Playwright):
+    chromium = playwright.chromium # or "firefox" or "webkit".
+    browser = await chromium.launch()
+    page = await browser.new_page()
+    await page.goto("http://example.com")
+    # other actions...
+    await browser.close()
+
+async def main():
+    async with async_playwright() as playwright:
+        await run(playwright)
+asyncio.run(main())
+```
+
+----------------------------------------
+
+TITLE: Locate Element by Title Attribute in Playwright Python
+DESCRIPTION: Shows how to find an element based on its `title` attribute. This is useful for elements that provide additional information via a tooltip when hovered over.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: HTML
+CODE:
+```
+<span title='Issues count'>25 issues</span>
+```
+
+LANGUAGE: Python
+CODE:
+```
+expect(page.get_by_title("Issues count")).to_have_text("25 issues")
+```
+
+LANGUAGE: Python
+CODE:
+```
+await expect(page.get_by_title("Issues count")).to_have_text("25 issues")
+```
+
+----------------------------------------
+
+TITLE: Intercept and Mock API Requests in Playwright Python
+DESCRIPTION: This example demonstrates how to intercept and mock API requests using Playwright for Python. It shows how to define a route handler to fulfill a specific API endpoint with custom JSON data, preventing the actual network request. The test then navigates to a page that uses the mocked route and asserts that the mocked data is displayed.
+SOURCE: https://playwright.dev/python/docs/intro/mock
+
+LANGUAGE: Python
+CODE:
+```
+def test_mock_the_fruit_api(page: Page):
+    def handle(route: Route):
+        json = [{"name": "Strawberry", "id": 21}]
+        # fulfill the route with the mock data
+        route.fulfill(json=json)
+
+    # Intercept the route to the fruit API
+    page.route("*/**/api/v1/fruits", handle)
+
+    # Go to the page
+    page.goto("https://demo.playwright.dev/api-mocking")
+
+    # Assert that the Strawberry fruit is visible
+    expect(page.get_by_text("Strawberry")).to_be_visible()
+```
+
+LANGUAGE: Python
+CODE:
+```
+async def test_mock_the_fruit_api(page: Page):
+    async def handle(route: Route):
+        json = [{"name": "Strawberry", "id": 21}]
+        # fulfill the route with the mock data
+        await route.fulfill(json=json)
+
+    # Intercept the route to the fruit API
+    await page.route("*/**/api/v1/fruits", handle)
+
+    # Go to the page
+    await page.goto("https://demo.playwright.dev/api-mocking")
+
+    # Assert that the Strawberry fruit is visible
+    await expect(page.get_by_text("Strawberry")).to_be_visible()
+```
+
+----------------------------------------
+
+TITLE: Locate Element by Text Content in Playwright Python
+DESCRIPTION: Shows how to find an element based on the text it contains. This method is suitable for non-interactive elements like `div` or `span` and can match by substring. Whitespace is normalized.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: HTML
+CODE:
+```
+<span>Welcome, John</span>
+```
+
+LANGUAGE: Python
+CODE:
+```
+expect(page.get_by_text("Welcome, John")).to_be_visible()
+```
+
+LANGUAGE: Python
+CODE:
+```
+await expect(page.get_by_text("Welcome, John")).to_be_visible()
+```
+
+----------------------------------------
+
+TITLE: Get Locator for Element (Playwright Python)
+DESCRIPTION: The `page.locator` method returns an element locator that can be used to perform actions on a page or frame. The locator is resolved immediately before performing an action, allowing for dynamic DOM changes. It supports various options for narrowing down results, such as checking for the presence or absence of other elements or specific text.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: python
+CODE:
+```
+page.locator(selector)
+page.locator(selector, **kwargs)
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.locator(selector: str, has: Locator = None, has_not: Locator = None, has_not_text: str | Pattern = None, has_text: str | Pattern = None) -> Locator
+  selector: str
+    A selector to use when resolving DOM element.
+  has: Locator (optional)
+    Narrows down the results of the method to those which contain elements matching this relative locator. Inner locator must be relative to the outer locator and is queried starting with the outer locator match, not the document root. Outer and inner locators must belong to the same frame. Inner locator must not contain FrameLocators.
+  has_not: Locator (optional)
+    Matches elements that do not contain an element that matches an inner locator. Inner locator is queried against the outer one. Outer and inner locators must belong to the same frame. Inner locator must not contain FrameLocators.
+  has_not_text: str | Pattern (optional)
+    Matches elements that do not contain specified text somewhere inside, possibly in a child or a descendant element. When passed a string, matching is case-insensitive and searches for a substring.
+  has_text: str | Pattern (optional)
+    Matches elements containing specified text somewhere inside, possibly in a child or a descendant element. When passed a string, matching is case-insensitive and searches for a substring.
+Returns: Locator
+```
+
+----------------------------------------
+
+TITLE: Locate Input Elements by Placeholder Text with Playwright Python get_by_placeholder
+DESCRIPTION: The `page.get_by_placeholder` method allows locating input elements based on their `placeholder` text attribute. This is a convenient way to target input fields that provide a hint to the user about the expected input. The method supports both exact and partial text matching for flexibility.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: HTML
+CODE:
+```
+<input type="email" placeholder="name@example.com" />
+```
+
+LANGUAGE: Python
+CODE:
+```
+page.get_by_placeholder("name@example.com").fill("playwright@microsoft.com")
+```
+
+LANGUAGE: Python
+CODE:
+```
+await page.get_by_placeholder("name@example.com").fill("playwright@microsoft.com")
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.get_by_placeholder(text: str | Pattern, exact: bool = False) -> Locator
+  text: Text to locate the element for.
+  exact: Whether to find an exact match: case-sensitive and whole-string. Default to false. Ignored when locating by a regular expression. Note that exact match still trims whitespace.
+```
+
+----------------------------------------
+
+TITLE: Launch Playwright Chromium Browser (Sync and Async Python)
+DESCRIPTION: This snippet illustrates how to launch a Chromium browser instance using Playwright in Python. It provides both synchronous and asynchronous examples, demonstrating the use of `ignore_default_args` to exclude default browser arguments like `--mute-audio` during launch.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-browsertype
+
+LANGUAGE: python
+CODE:
+```
+browser = playwright.chromium.launch( # or "firefox" or "webkit".
+    ignore_default_args=["--mute-audio"]
+)
+```
+
+LANGUAGE: python
+CODE:
+```
+browser = await playwright.chromium.launch( # or "firefox" or "webkit".
+    ignore_default_args=["--mute-audio"]
+)
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: page.click Method API Specification
+DESCRIPTION: Comprehensive API specification for the `page.click` method in Playwright Python. This method performs a click action on an element identified by a selector, following a series of internal steps including waiting for actionability and scrolling. It is discouraged in favor of `locator.click()`.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.click(selector, **kwargs)
+  Description: Clicks an element matching selector by performing a series of steps including finding the element, waiting for actionability, scrolling into view, and using page.mouse to click. This method is discouraged; use locator.click() instead.
+  Parameters:
+    selector: str
+      Description: A selector to search for an element. If there are multiple elements satisfying the selector, the first will be used.
+    button: "left" | "right" | "middle" (optional)
+      Description: Defaults to `left`.
+    click_count: int (optional)
+      Description: defaults to 1. See UIEvent.detail.
+    delay: float (optional)
+      Description: Time to wait between `mousedown` and `mouseup` in milliseconds. Defaults to 0.
+    force: bool (optional)
+      Description: Whether to bypass the actionability checks. Defaults to `false`.
+    modifiers: List["Alt" | "Control" | "ControlOrMeta" | "Meta" | "Shift"] (optional)
+      Description: Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to "Control" on Windows and Linux and to "Meta" on macOS.
+    no_wait_after: bool (optional)
+      Description: Deprecated. This option will default to `true` in the future. Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as navigating to inaccessible pages. Defaults to `false`.
+    position: Dict (optional)
+      Description: A point to use relative to the top-left corner of element padding box. If not specified, uses some visible point of the element.
+      Properties:
+        x: float
+        y: float
+    strict: bool (optional)
+      Description: When true, the call requires selector to resolve to a single element. If given selector resolves to more than one element, the call throws an exception. Added in: v1.14.
+    timeout: float (optional)
+      Description: Maximum time in milliseconds. Defaults to `30000` (30 seconds). Pass `0` to disable timeout. The default value can be changed by using the browser_context.set_default_timeout() or page.set_default_timeout() methods.
+    trial: bool (optional)
+      Description: Added in: v1.11.
+```
+
+----------------------------------------
+
+TITLE: Find Parent Element using locator.filter() in Playwright Python
+DESCRIPTION: Demonstrates the recommended way to find a parent element based on a child element using `locator.filter(has=child_locator)` in Playwright Python. This approach is robust and less prone to breaking with DOM structure changes compared to XPath-based parent selection.
+SOURCE: https://playwright.dev/python/docs/intro/other-locators
+
+LANGUAGE: Python
+CODE:
+```
+child = page.get_by_text("Hello")
+parent = page.get_by_role("listitem").filter(has=child)
+```
+
+LANGUAGE: Python
+CODE:
+```
+child = page.get_by_text("Hello")
+parent = page.get_by_role("listitem").filter(has=child)
+```
+
+----------------------------------------
+
+TITLE: API Reference: page.get_by_test_id
+DESCRIPTION: Provides the API specification for the `page.get_by_test_id` method, detailing its required `test_id` argument and its return type. This method is designed for locating elements using a designated test ID attribute, typically `data-testid`.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.get_by_test_id
+  test_id: str | Pattern - Id to locate the element by.
+Returns:
+  Locator
+```
+
+----------------------------------------
+
+TITLE: Handle and Mock Network Requests in Playwright (Python)
+DESCRIPTION: Explains how to intercept and fulfill network requests using `page.route()`, effectively mocking API endpoints. This example demonstrates fulfilling a specific URL pattern with a custom status and body, useful for testing scenarios without a live backend. Both sync and async versions are provided.
+SOURCE: https://playwright.dev/python/docs/intro/network
+
+LANGUAGE: python
+CODE:
+```
+page.route(
+    "**/api/fetch_data",
+    lambda route: route.fulfill(status=200, body=test_data))
+page.goto("https://example.com")
+```
+
+LANGUAGE: python
+CODE:
+```
+await page.route(
+    "**/api/fetch_data",
+    lambda route: route.fulfill(status=200, body=test_data))
+await page.goto("https://example.com")
+```
+
+----------------------------------------
+
+TITLE: Handle API Responses Asynchronously with Playwright Python
+DESCRIPTION: Illustrates the asynchronous usage of Playwright's `APIResponse` class in Python. It demonstrates how to make an API request, await its response, and then assert properties like status, headers, and parse JSON or raw body content using `async_playwright`.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-apiresponse
+
+LANGUAGE: Python
+CODE:
+```
+import asyncio
+from playwright.async_api import async_playwright, Playwright
+
+async def run(playwright: Playwright):
+    context = await playwright.request.new_context()
+    response = await context.get("https://example.com/user/repos")
+    assert response.ok
+    assert response.status == 200
+    assert response.headers["content-type"] == "application/json; charset=utf-8"
+    json_data = await response.json()
+    assert json_data["name"] == "foobar"
+    assert await response.body() == '{"status": "ok"}'
+
+async def main():
+    async with async_playwright() as playwright:
+        await run(playwright)
+
+asyncio.run(main())
+```
+
+----------------------------------------
+
+TITLE: Check a checkbox or radio element using Playwright Python Locator
+DESCRIPTION: Ensures that a checkbox or radio element is checked. This method performs actionability checks, scrolls the element into view, clicks it, and verifies its checked state. It supports various options like `force`, `position`, `timeout`, and `trial` for fine-grained control.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locator
+
+LANGUAGE: Python
+CODE:
+```
+page.get_by_role("checkbox").check()
+```
+
+LANGUAGE: Python
+CODE:
+```
+await page.get_by_role("checkbox").check()
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+locator.check(
+  force: bool = False,
+  no_wait_after: bool = False,
+  position: Dict[x: float, y: float] = None,
+  timeout: float = 30000,
+  trial: bool = False
+) -> NoneType
+
+Arguments:
+  force: bool (optional)
+    Whether to bypass the actionability checks. Defaults to `false`.
+  no_wait_after: bool (optional)
+    Deprecated. This option has no effect.
+  position: Dict (optional)
+    A point to use relative to the top-left corner of element padding box. If not specified, uses some visible point of the element.
+    x: float
+    y: float
+  timeout: float (optional)
+    Maximum time in milliseconds. Defaults to `30000` (30 seconds). Pass `0` to disable timeout. The default value can be changed by using the `browser_context.set_default_timeout()` or `page.set_default_timeout()` methods.
+  trial: bool (optional)
+    When set, this method only performs the actionability checks and skips the action. Defaults to `false`. Useful to wait until the element is ready for the action without performing it.
+
+Returns:
+  NoneType
+
+Details:
+  Performs the following steps:
+  1. Ensure that element is a checkbox or a radio input. If not, this method throws. If the element is already checked, this method returns immediately.
+  2. Wait for actionability checks on the element, unless `force` option is set.
+  3. Scroll the element into view if needed.
+  4. Use `page.mouse` to click in the center of the element.
+  5. Ensure that the element is now checked. If not, this method throws.
+  If the element is detached from the DOM at any moment during the action, this method throws.
+  When all steps combined have not finished during the specified `timeout`, this method throws a `TimeoutError`. Passing zero timeout disables this.
+```
+
+----------------------------------------
+
+TITLE: Fill Text Input Fields with Playwright Python
+DESCRIPTION: This snippet demonstrates how to use Playwright's `locator.fill()` method to input text into various HTML form fields. It covers textboxes, date inputs, time inputs, and local datetime inputs. The method automatically focuses the element and triggers an `input` event with the provided text, working for `<input>`, `<textarea>`, and `[contenteditable]` elements.
+SOURCE: https://playwright.dev/python/docs/intro/input
+
+LANGUAGE: Python
+CODE:
+```
+# Text input
+page.get_by_role("textbox").fill("Peter")
+
+# Date input
+page.get_by_label("Birth date").fill("2020-02-02")
+
+# Time input
+page.get_by_label("Appointment time").fill("13:15")
+
+# Local datetime input
+page.get_by_label("Local time").fill("2020-03-02T05:15")
+```
+
+LANGUAGE: Python
+CODE:
+```
+# Text input
+await page.get_by_role("textbox").fill("Peter")
+
+# Date input
+await page.get_by_label("Birth date").fill("2020-02-02")
+
+# Time input
+await page.get_by_label("Appointment time").fill("13:15")
+
+# Local datetime input
+await page.get_by_label("Local time").fill("2020-03-02T05:15")
+```
+
+----------------------------------------
+
+TITLE: Handle and Accept Dialogs in Playwright Python
+DESCRIPTION: This code demonstrates how to set up a `page.on("dialog")` listener to automatically accept web dialogs (like `alert`, `confirm`, `prompt`) in Playwright. The listener must be registered before the action that triggers the dialog to prevent the test from stalling, as dialogs are modal and block further execution.
+SOURCE: https://playwright.dev/python/docs/intro/dialogs
+
+LANGUAGE: Python
+CODE:
+```
+page.on("dialog", lambda dialog: dialog.accept())
+page.get_by_role("button").click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+page.on("dialog", lambda dialog: dialog.accept())
+await page.get_by_role("button".click())
+```
+
+----------------------------------------
+
+TITLE: Click 'Add to Cart' for Specific Product using Playwright Python Locator Filter
+DESCRIPTION: Demonstrates how to locate and click the 'Add to cart' button for 'Product 2' by filtering list items that contain a heading with 'Product 2' using Playwright's `filter(has=...)` method in Python.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: python
+CODE:
+```
+page.get_by_role("listitem").filter(
+    has=page.get_by_role("heading", name="Product 2")
+).get_by_role("button", name="Add to cart").click()
+```
+
+LANGUAGE: python
+CODE:
+```
+await page.get_by_role("listitem").filter(
+    has=page.get_by_role("heading", name="Product 2")
+).get_by_role("button", name="Add to cart").click()
+```
+
+----------------------------------------
+
+TITLE: Playwright Python locator.click Method API Reference
+DESCRIPTION: Detailed API documentation for the `locator.click` method, including all available arguments, their types, descriptions, default values, and the method's return type and behavioral details.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locator
+
+LANGUAGE: APIDOC
+CODE:
+```
+locator.click(
+  button: "left" | "right" | "middle" = "left",
+  click_count: int = 1,
+  delay: float = 0,
+  force: bool = False,
+  modifiers: List["Alt" | "Control" | "ControlOrMeta" | "Meta" | "Shift"] = None,
+  no_wait_after: bool = False, # Deprecated
+  position: Dict = None, # x: float, y: float
+  timeout: float = 30000,
+  trial: bool = False
+) -> NoneType
+
+Description:
+Click an element.
+
+Details:
+1. Wait for actionability checks on the element, unless force option is set.
+2. Scroll the element into view if needed.
+3. Use page.mouse to click in the center of the element, or the specified position.
+4. Wait for initiated navigations to either succeed or fail, unless no_wait_after option is set.
+If the element is detached from the DOM at any moment during the action, this method throws.
+When all steps combined have not finished during the specified timeout, this method throws a TimeoutError. Passing zero timeout disables this.
+```
+
+----------------------------------------
+
+TITLE: GitHub Actions Workflow for Playwright Tests (Containerized)
+DESCRIPTION: This GitHub Actions workflow demonstrates how to run Playwright tests in a containerized environment. It utilizes a pre-built Playwright Python Docker image to provide a consistent testing environment, installing Python dependencies and executing `pytest`.
+SOURCE: https://playwright.dev/python/docs/intro/ci
+
+LANGUAGE: yaml
+CODE:
+```
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  playwright:
+    name: 'Playwright Tests'
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.52.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r local-requirements.txt
+          pip install -e .
+      - name: Run your tests
+        run: pytest
+```
+
+----------------------------------------
+
+TITLE: Playwright Python: page.route API Reference
+DESCRIPTION: Detailed API documentation for the `page.route` method in Playwright Python, including its parameters (`url`, `handler`, `times`) and return type. It explains how to define patterns for URL matching and provide a handler function for request interception, along with an optional parameter to limit the number of times the route is used.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: APIDOC
+CODE:
+```
+page.route(url, handler, times?)
+
+Arguments:
+- url: str | Pattern | Callable[[URL], bool]
+    A glob pattern, regex pattern, or predicate that receives a URL to match during routing.
+- handler: Callable[[Route, Request], Promise[Any]] | Any
+    Handler function to route the request.
+- times: int (optional) (Added in: v1.15)
+    How often a route should be used. By default it will be used every time.
+
+Returns:
+- NoneType
+```
+
+----------------------------------------
+
+TITLE: Locate and Click Button by Role and Name
+DESCRIPTION: Demonstrates how to locate a button element using `page.get_by_role()` with its accessible name and then perform a click action. Includes both synchronous and asynchronous Playwright Python examples.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: HTML
+CODE:
+```
+<button>Sign in</button>
+```
+
+LANGUAGE: Python
+CODE:
+```
+page.get_by_role("button", name="Sign in").click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+await page.get_by_role("button", name="Sign in").click()
+```
+
+----------------------------------------
+
+TITLE: Locate Elements by Role (Heading, Checkbox, Button with Regex)
+DESCRIPTION: Demonstrates locating various elements by their ARIA role and accessible name. Includes examples for a heading, a checkbox, and a button using a regular expression for the name match. Shows how to assert visibility, check a checkbox, and click a button.
+SOURCE: https://playwright.dev/python/docs/intro/locators
+
+LANGUAGE: HTML
+CODE:
+```
+<h3>Sign up</h3>
+<label>
+  <input type="checkbox" /> Subscribe
+</label>
+<br/>
+<button>Submit</button>
+```
+
+LANGUAGE: Python
+CODE:
+```
+expect(page.get_by_role("heading", name="Sign up")).to_be_visible()
+
+page.get_by_role("checkbox", name="Subscribe").check()
+
+page.get_by_role("button", name=re.compile("submit", re.IGNORECASE)).click()
+```
+
+LANGUAGE: Python
+CODE:
+```
+await expect(page.get_by_role("heading", name="Sign up")).to_be_visible()
+
+await page.get_by_role("checkbox", name="Subscribe").check()
+
+await page.get_by_role("button", name=re.compile("submit", re.IGNORECASE)).click()
+```
+
+----------------------------------------
+
+TITLE: Implement Web-First Assertions with Playwright Python `expect`
+DESCRIPTION: Shows how to use Playwright's web-first assertions, specifically `expect().to_have_text()`, to wait for an element's text content to match a condition. Playwright will re-test the element until the condition is met or a timeout occurs.
+SOURCE: https://playwright.dev/python/docs/intro/release-notes
+
+LANGUAGE: python
+CODE:
+```
+from playwright.sync_api import Page, expect
+
+def test_status_becomes_submitted(page: Page) -> None:
+    # ..
+    page.locator("#submit-button").click()
+    expect(page.locator(".status")).to_have_text("Submitted")
+```
+
+LANGUAGE: python
+CODE:
+```
+from playwright.async_api import Page, expect
+
+async def test_status_becomes_submitted(page: Page) -> None:
+    # ..
+    await page.locator("#submit-button").click()
+    await expect(page.locator(".status")).to_have_text("Submitted")
+```
+
+----------------------------------------
+
+TITLE: Install Default Playwright Browsers
+DESCRIPTION: This command installs the default set of browser binaries required by Playwright. It should be run whenever Playwright is updated to ensure compatibility with the latest browser versions.
+SOURCE: https://playwright.dev/python/docs/intro/browsers
+
+LANGUAGE: Shell
+CODE:
+```
+playwright install
+```
+
+----------------------------------------
+
+TITLE: Utilize a Playwright Page Object Model in a Test
+DESCRIPTION: This Python code demonstrates how to integrate and use the `SearchPage` Page Object Model within a Playwright test. It shows the instantiation of the page object and calling its encapsulated navigation and search methods. The asynchronous example is truncated in the source text.
+SOURCE: https://playwright.dev/python/docs/intro/pom
+
+LANGUAGE: Python
+CODE:
+```
+from models.search import SearchPage
+
+# in the test
+page = browser.new_page()
+search_page = SearchPage(page)
+search_page.navigate()
+search_page.search("search query")
+```
+
+LANGUAGE: Python
+CODE:
+```
+from models.search import SearchPage
+```
+
+----------------------------------------
+
+TITLE: Playwright Python Page Object Model Test Flow
+DESCRIPTION: This snippet shows a typical Playwright Python test sequence using a Page Object Model. It initializes a new browser page, instantiates a 'SearchPage' object, navigates to a URL, and then executes a search query. This pattern promotes maintainability and reusability in tests.
+SOURCE: https://playwright.dev/python/docs/intro/pom
+
+LANGUAGE: Python
+CODE:
+```
+page = await browser.new_page()
+search_page = SearchPage(page)
+await search_page.navigate()
+await search_page.search("search query")
+```
+
+----------------------------------------
+
+TITLE: Reuse Playwright Browser Context Storage State (Python)
+DESCRIPTION: This snippet demonstrates how to save the authenticated storage state (including cookies, local storage, and IndexedDB) from a Playwright browser context to a file. It then shows how to create a new browser context that automatically loads this saved state, allowing tests to skip repeated login steps. This method supports both synchronous and asynchronous Playwright operations.
+SOURCE: https://playwright.dev/python/docs/intro/auth
+
+LANGUAGE: python
+CODE:
+```
+# Save storage state into the file.
+storage = context.storage_state(path="state.json")
+
+# Create a new context with the saved storage state.
+context = browser.new_context(storage_state="state.json")
+
+```
+
+LANGUAGE: python
+CODE:
+```
+# Save storage state into the file.
+storage = await context.storage_state(path="state.json")
+
+# Create a new context with the saved storage state.
+context = await browser.new_context(storage_state="state.json")
+
+```
+
+----------------------------------------
+
+TITLE: Synchronous Playwright Page Navigation and Screenshot
+DESCRIPTION: This example demonstrates how to use Playwright's synchronous API in Python to launch a WebKit browser, create a new page context, navigate to a specified URL, and capture a screenshot of the page. It showcases a typical web automation flow.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-page
+
+LANGUAGE: Python
+CODE:
+```
+from playwright.sync_api import sync_playwright, Playwright
+
+def run(playwright: Playwright):
+    webkit = playwright.webkit
+    browser = webkit.launch()
+    context = browser.new_context()
+    page = context.new_page()
+    page.goto("https://example.com")
+    page.screenshot(path="screenshot.png")
+    browser.close()
+
+with sync_playwright() as playwright:
+    run(playwright)
+```
+
+----------------------------------------
+
+TITLE: Locate Element by Test ID in Playwright Python
+DESCRIPTION: Demonstrates how to locate an element using its `data-testid` attribute in Playwright Python. Includes both synchronous and asynchronous usage examples, along with API specifications for the `get_by_test_id` method.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-frame
+
+LANGUAGE: html
+CODE:
+```
+<button data-testid="directions">Itinéraire</button>
+```
+
+LANGUAGE: python
+CODE:
+```
+page.get_by_test_id("directions").click()
+```
+
+LANGUAGE: python
+CODE:
+```
+await page.get_by_test_id("directions").click()
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+frame.get_by_test_id(test_id: str | Pattern) -> Locator
+Locate element by the test id.
+
+Arguments:
+  test_id: Id to locate the element by.
+
+Details:
+  By default, the `data-testid` attribute is used as a test id. Use selectors.set_test_id_attribute() to configure a different test id attribute if necessary.
+```
+
+----------------------------------------
+
+TITLE: Locate and Click Element (One Line)
+DESCRIPTION: Illustrates a more concise way to locate an element and immediately perform a click action using Playwright's chaining capabilities. This is a common pattern for single-use interactions.
+SOURCE: https://playwright.dev/python/docs/intro/writing-tests
+
+LANGUAGE: python
+CODE:
+```
+page.get_by_role("link", name="Get started").click()
+```
+
+----------------------------------------
+
+TITLE: Playwright Python Locator Assertion: to_be_enabled
+DESCRIPTION: Ensures the Locator points to an enabled element.
+SOURCE: https://playwright.dev/python/docs/intro/api/class-locatorassertions
+
+LANGUAGE: python
+CODE:
+```
+from playwright.sync_api import expect
+
+locator = page.locator("button.submit")
+expect(locator).to_be_enabled()
+```
+
+LANGUAGE: python
+CODE:
+```
+from playwright.async_api import expect
+
+locator = page.locator("button.submit")
+await expect(locator).to_be_enabled()
+```
+
+LANGUAGE: APIDOC
+CODE:
+```
+locatorAssertions.to_be_enabled
+Arguments:
+  enabled: bool (optional) - Added in: v1.26
+  timeout: float (optional) - Time to retry the assertion for in milliseconds. Defaults to 5000.
+Returns:
+  NoneType
+```
