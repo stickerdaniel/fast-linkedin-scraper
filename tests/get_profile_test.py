@@ -16,7 +16,7 @@ assert cookie is not None
 # Profile URLs to scrape
 USERNAMES = [
     # "rayan-siddiqui-511822303",
-    # "anistji",
+    "anistji",
     "stickerdaniel",
 ]
 
