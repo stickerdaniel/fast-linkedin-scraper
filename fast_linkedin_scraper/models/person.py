@@ -14,6 +14,7 @@ class Experience(BaseInstitution):
     position_title: Optional[str] = None
     duration: Optional[str] = None
     location: Optional[str] = None
+    employment_type: Optional[str] = None
     skills: List[str] = Field(default_factory=list)
 
 

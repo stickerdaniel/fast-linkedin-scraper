@@ -12,6 +12,9 @@ from .utils import (
     clean_single_string_duplicates,
     extract_description_and_skills_from_element,
     is_date_range,
+    is_employment_type,
+    extract_employment_type,
+    is_geographic_location,
 )
 
 
@@ -86,11 +89,6 @@ def scrape_experiences(page: Page, person: Person) -> None:
                 # Parse position information based on number of elements
                 position_info = _parse_position_info(outer_positions)
 
-                # Debug logging (can be removed once stable)
-                # print(f"DEBUG: Position info extracted: {position_info}")
-                # print(f"DEBUG: Company LinkedIn URL: {company_linkedin_url}")
-                # print(f"DEBUG: Outer positions count: {len(outer_positions)}")
-
                 # Check if there are multiple positions within this company
                 inner_positions = _extract_inner_positions(position_summary_text)
 
@@ -107,6 +105,7 @@ def scrape_experiences(page: Page, person: Person) -> None:
                                 to_date=experience_data.get("to_date", ""),
                                 duration=experience_data.get("duration"),
                                 location=experience_data.get("location"),
+                                employment_type=experience_data.get("employment_type"),
                                 description=experience_data.get("description", ""),
                                 skills=experience_data.get("skills", []),
                                 institution_name=position_info.get("company", ""),
@@ -127,6 +126,7 @@ def scrape_experiences(page: Page, person: Person) -> None:
                         to_date=position_info.get("to_date", ""),
                         duration=position_info.get("duration"),
                         location=position_info.get("location", ""),
+                        employment_type=position_info.get("employment_type"),
                         description=description,
                         skills=skills,
                         institution_name=position_info.get("company", ""),
@@ -164,18 +164,14 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
         "company": "",
         "work_times": "",
         "location": "",
+        "employment_type": "",
         "from_date": "",
         "to_date": "",
         "duration": None,
     }
 
     try:
-        # Debug: Print what we're working with
-        print(f"DEBUG: Processing {len(outer_positions)} outer positions")
-        for i, pos in enumerate(outer_positions):
-            print(f"  Position {i}: '{pos.inner_text()}'")
-
-        # Follow Selenium logic exactly
+        # Follow Selenium logic exactly but with improved field classification
         if len(outer_positions) == 4:
             title_text = outer_positions[0].locator("span").first.inner_text()
             position_info["position_title"] = clean_single_string_duplicates(title_text)
@@ -185,9 +181,21 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
             position_info["work_times"] = (
                 outer_positions[2].locator("span").first.inner_text()
             )
-            position_info["location"] = (
-                outer_positions[3].locator("span").first.inner_text()
-            )
+
+            # Smart classification for the 4th element (could be location or employment type)
+            fourth_element_text = outer_positions[3].locator("span").first.inner_text()
+            if is_employment_type(fourth_element_text):
+                position_info["employment_type"] = extract_employment_type(
+                    fourth_element_text
+                )
+                position_info["location"] = ""
+            elif is_geographic_location(fourth_element_text):
+                position_info["location"] = fourth_element_text
+                position_info["employment_type"] = ""
+            else:
+                # Default to location for backward compatibility
+                position_info["location"] = fourth_element_text
+                position_info["employment_type"] = ""
         elif len(outer_positions) == 3:
             # Check if second or third element contains work times (has ·, - and year patterns)
             second_element_text = outer_positions[1].inner_text()
@@ -203,7 +211,7 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
             )
 
             if is_second_dates:
-                # Pattern: company, work_times, location
+                # Pattern: company, work_times, location/employment_type
                 position_info["position_title"] = ""
                 position_info["company"] = (
                     outer_positions[0].locator("span").first.inner_text()
@@ -211,9 +219,23 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                 position_info["work_times"] = (
                     outer_positions[1].locator("span").first.inner_text()
                 )
-                position_info["location"] = (
+
+                # Smart classification for the 3rd element
+                third_element_text = (
                     outer_positions[2].locator("span").first.inner_text()
                 )
+                if is_employment_type(third_element_text):
+                    position_info["employment_type"] = extract_employment_type(
+                        third_element_text
+                    )
+                    position_info["location"] = ""
+                elif is_geographic_location(third_element_text):
+                    position_info["location"] = third_element_text
+                    position_info["employment_type"] = ""
+                else:
+                    # Default to location for backward compatibility
+                    position_info["location"] = third_element_text
+                    position_info["employment_type"] = ""
             elif is_third_dates:
                 # Pattern: position_title, company, work_times
                 title_text = outer_positions[0].locator("span").first.inner_text()
@@ -227,16 +249,31 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                     outer_positions[2].locator("span").first.inner_text()
                 )
                 position_info["location"] = ""
+                position_info["employment_type"] = ""
             else:
-                # Fallback: assume no dates, treat as company, unknown, location
+                # Fallback: assume no dates, treat as company, unknown, location/employment_type
                 position_info["position_title"] = ""
                 position_info["company"] = (
                     outer_positions[0].locator("span").first.inner_text()
                 )
                 position_info["work_times"] = ""
-                position_info["location"] = (
+
+                # Smart classification for the 3rd element
+                third_element_text = (
                     outer_positions[2].locator("span").first.inner_text()
                 )
+                if is_employment_type(third_element_text):
+                    position_info["employment_type"] = extract_employment_type(
+                        third_element_text
+                    )
+                    position_info["location"] = ""
+                elif is_geographic_location(third_element_text):
+                    position_info["location"] = third_element_text
+                    position_info["employment_type"] = ""
+                else:
+                    # Default to location for backward compatibility
+                    position_info["location"] = third_element_text
+                    position_info["employment_type"] = ""
         else:
             # Default case
             position_info["position_title"] = ""
@@ -249,8 +286,7 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                     outer_positions[1].locator("span").first.inner_text()
                 )
             position_info["location"] = ""
-
-        print(f"DEBUG: Parsed position info: {position_info}")
+            position_info["employment_type"] = ""
 
         # Validate field assignments using regex (more accurate than string checks)
         if position_info["location"] and "·" in position_info["location"]:
@@ -259,9 +295,8 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                 is_date_range(part.strip())
                 for part in position_info["location"].split("·")
             ):
-                print(
-                    f"WARNING: Location field contains date-like content: {position_info['location']}"
-                )
+                # Clear location if it contains date-like content
+                position_info["location"] = ""
 
         if position_info["work_times"] and "·" in position_info["work_times"]:
             # Check if work_times contains actual date ranges
@@ -270,9 +305,8 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                 for part in position_info["work_times"].split("·")
             )
             if not has_dates:
-                print(
-                    f"WARNING: Work times field may not contain dates: {position_info['work_times']}"
-                )
+                # Clear work_times if it doesn't contain actual dates
+                position_info["work_times"] = ""
 
         # Parse work times into dates - following Selenium approach
         if position_info["work_times"]:
@@ -302,13 +336,7 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                     if len(time_parts) >= 2:
                         position_info["from_date"] = " ".join(time_parts[:2])
 
-                print(
-                    f"DEBUG: from_date='{position_info['from_date']}', to_date='{position_info['to_date']}'"
-                )
-                print(f"DEBUG: original times='{times}'")
-
-    except Exception as e:
-        print(f"DEBUG: Exception in _parse_position_info: {e}")
+    except Exception:
         pass
 
     return position_info
@@ -388,11 +416,12 @@ def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
 
         position_title_elem = elements[0]
 
-        # Intelligently detect which element contains dates vs location
+        # Intelligently detect which element contains dates vs location vs employment type
         work_times = ""
         location = ""
+        employment_type = ""
 
-        # Check elements[1] and elements[2] for date patterns
+        # Check elements[1] and elements[2] for date patterns, employment types, and locations
         for i in range(1, len(elements)):
             elem_text = (
                 elements[i].locator("*").first.inner_text()
@@ -407,8 +436,20 @@ def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
 
             if has_dates and not work_times:
                 work_times = elem_text
-            elif not has_dates and not location:
+            elif is_employment_type(elem_text) and not employment_type:
+                employment_type = extract_employment_type(elem_text)
+            elif is_geographic_location(elem_text) and not location:
                 location = elem_text
+            elif not has_dates and not location and not employment_type:
+                # Fallback: if we haven't assigned this text yet, check what it might be
+                if is_employment_type(elem_text):
+                    employment_type = extract_employment_type(elem_text)
+                elif is_geographic_location(elem_text):
+                    location = elem_text
+                else:
+                    # As last resort, if no date patterns and not clearly employment type or location,
+                    # assign to location (but this shouldn't happen with improved logic)
+                    location = elem_text
 
         title_text = (
             position_title_elem.locator("*").first.inner_text()
@@ -429,6 +470,7 @@ def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
             "position_title": position_title,
             "work_times": work_times,
             "location": location,
+            "employment_type": employment_type,
             "description": description,
             "skills": skills,
             **times_info,

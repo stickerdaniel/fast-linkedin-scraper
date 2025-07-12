@@ -4,9 +4,8 @@ from playwright.sync_api import Page
 from pydantic import HttpUrl
 
 from ...models.person import Person
-from .experience import scrape_experiences
 from .education import scrape_educations
-from .connections import scrape_connections
+from .experience import scrape_experiences
 
 
 class PersonScraper:
@@ -55,8 +54,8 @@ class PersonScraper:
         scrape_educations(self.page, person)
         self.page.wait_for_timeout(1000)  # 1 second between sections
 
-        # Scrape connections
-        scrape_connections(self.page, person)
+        # # Scrape connections
+        # scrape_connections(self.page, person)
 
         return person
 

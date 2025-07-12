@@ -431,3 +431,172 @@ def parse_date_range_smart(text: str) -> tuple[str, str]:
             return "", ""
 
     return from_date, to_date
+
+
+# LinkedIn Employment Types based on UI options
+LINKEDIN_EMPLOYMENT_TYPES = {
+    "self-employed",
+    "freelance",
+    "internship",
+    "apprenticeship",
+    "contract full-time",
+    "permanent part-time",
+    "contract part-time",
+    "casual / on-call",
+    "seasonal",
+    "permanent full-time",
+    "co-op",
+    "full-time",
+    "part-time",
+    "contract",
+    "temporary",
+    "volunteer",
+    "work study",
+}
+
+
+def is_employment_type(text: str) -> bool:
+    """Check if text contains a LinkedIn employment type.
+
+    Args:
+        text: Text to check for employment type keywords
+
+    Returns:
+        True if text contains employment type keywords, False otherwise
+
+    Examples:
+        >>> is_employment_type("Freelance")
+        True
+        >>> is_employment_type("Full-time")
+        True
+        >>> is_employment_type("Linz, Upper Austria")
+        False
+    """
+    if not text:
+        return False
+
+    text_lower = text.lower().strip()
+
+    # Check exact matches first
+    if text_lower in LINKEDIN_EMPLOYMENT_TYPES:
+        return True
+
+    # Check if any employment type is contained in the text
+    for emp_type in LINKEDIN_EMPLOYMENT_TYPES:
+        if emp_type in text_lower:
+            return True
+
+    return False
+
+
+def extract_employment_type(text: str) -> Optional[str]:
+    """Extract employment type from text that may contain mixed content.
+
+    Args:
+        text: Text that may contain employment type mixed with other content
+
+    Returns:
+        Employment type string if found, None otherwise
+
+    Examples:
+        >>> extract_employment_type("Company Name · Freelance")
+        "Freelance"
+        >>> extract_employment_type("Full-time")
+        "Full-time"
+        >>> extract_employment_type("Linz, Upper Austria")
+        None
+    """
+    if not text:
+        return None
+
+    text_lower = text.lower().strip()
+
+    # Check exact match first
+    if text_lower in LINKEDIN_EMPLOYMENT_TYPES:
+        return text.strip()
+
+    # Split by common separators and check each part
+    for separator in ["·", ",", "-", "•"]:
+        if separator in text:
+            parts = text.split(separator)
+            for part in parts:
+                part_lower = part.strip().lower()
+                if part_lower in LINKEDIN_EMPLOYMENT_TYPES:
+                    return part.strip()
+
+    # Check if any employment type is contained in the text
+    for emp_type in LINKEDIN_EMPLOYMENT_TYPES:
+        if emp_type in text_lower:
+            # Try to extract just the employment type part
+            words = text.split()
+            for word in words:
+                if word.lower().strip() in LINKEDIN_EMPLOYMENT_TYPES:
+                    return word.strip()
+
+    return None
+
+
+def is_geographic_location(text: str) -> bool:
+    """Check if text appears to be a geographic location rather than employment type.
+
+    Args:
+        text: Text to check
+
+    Returns:
+        True if text appears to be a geographic location, False otherwise
+
+    Examples:
+        >>> is_geographic_location("Linz, Upper Austria")
+        True
+        >>> is_geographic_location("Frankfurt Rhine-Main Metropolitan Area")
+        True
+        >>> is_geographic_location("Remote")
+        True
+        >>> is_geographic_location("Freelance")
+        False
+    """
+    if not text:
+        return False
+
+    text_lower = text.lower().strip()
+
+    # If it's an employment type, it's not a location
+    if is_employment_type(text):
+        return False
+
+    # Geographic indicators
+    location_indicators = [
+        ",",  # "City, State/Province"
+        "area",
+        "region",
+        "metropolitan",
+        "remote",
+        "on-site",
+        "hybrid",
+        "germany",
+        "austria",
+        "canada",
+        "usa",
+        "united states",
+        "uk",
+        "france",
+        "city",
+        "state",
+        "province",
+        "country",
+        "district",
+        "county",
+        "am main",
+        "rhine-main",
+        "greater",
+        "toronto",
+        "frankfurt",
+        "linz",
+        "hanau",
+        "aachen",
+        "hesse",
+        "upper austria",
+        "ontario",
+    ]
+
+    return any(indicator in text_lower for indicator in location_indicators)
