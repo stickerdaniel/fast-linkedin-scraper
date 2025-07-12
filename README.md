@@ -34,6 +34,7 @@ with LinkedInSession.from_cookie(li_at_cookie) as session:
       "position_title": "Software Developer",
       "duration": "7 mos",
       "location": "Frankfurt Rhine-Main Metropolitan Area · Remote",
+      "employment_type": "",
       "skills": [
         "Gitlab",
         "Python (Programming Language)",
@@ -48,7 +49,8 @@ with LinkedInSession.from_cookie(li_at_cookie) as session:
       "description": "Following my short-term developer role, I was commissioned for a freelance project to create software that automatically synchronized products from the ERP system to the web catalog and online shop using Shopify & Webflow APIs.",
       "position_title": "Software Developer",
       "duration": "5 mos",
-      "location": "Freelance",
+      "location": "Remote",
+      "employment_type": "Freelance",
       "skills": [
         "Shopify API",
         "Webflow API",
