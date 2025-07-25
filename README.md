@@ -1,5 +1,11 @@
 # Fast LinkedIn Scraper
 
+<p align="left">
+  <a href="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
+  <a href="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/release.yml" target="_blank"><img src="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/release.yml/badge.svg?branch=main" alt="Release"></a>
+  <a href="https://github.com/stickerdaniel/fast-linkedin-scraper/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-MIT-brightgreen?labelColor=32383f" alt="License"></a>
+</p>
+
 A modern Python library for efficiently scraping LinkedIn.
 
 ## Overview
