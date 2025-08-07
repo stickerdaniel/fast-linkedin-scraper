@@ -31,9 +31,10 @@ class Education(BaseInstitution):
 class Interest(BaseModel):
     """Interest/hobby entry."""
 
-    title: Optional[str] = None
-    institution_name: Optional[str] = None
-    linkedin_url: Optional[HttpUrl] = None
+    name: str
+    type: str  # "influencer", "company", "group", "newsletter", "school"
+    url: Optional[str] = None
+    followers: Optional[str] = None
 
 
 class Accomplishment(BaseModel):
