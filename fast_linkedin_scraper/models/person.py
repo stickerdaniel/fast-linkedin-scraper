@@ -43,7 +43,9 @@ class Accomplishment(BaseModel):
     category: Optional[str] = None
     title: Optional[str] = None
     institution_name: Optional[str] = None
-    linkedin_url: Optional[HttpUrl] = None
+    linkedin_url: Optional[HttpUrl] = (
+        None  # Can be institution URL or document/certificate URL
+    )
 
 
 class Person(BaseModel):
