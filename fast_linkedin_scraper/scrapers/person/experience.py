@@ -175,9 +175,20 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
         if len(outer_positions) == 4:
             title_text = outer_positions[0].locator("span").first.inner_text()
             position_info["position_title"] = clean_single_string_duplicates(title_text)
-            position_info["company"] = (
-                outer_positions[1].locator("span").first.inner_text()
-            )
+            company_text = outer_positions[1].locator("span").first.inner_text()
+            # Check if company text contains employment type after dot separator
+            if "·" in company_text:
+                company_parts = company_text.split("·")
+                position_info["company"] = company_parts[0].strip()
+                # Check if the part after dot is employment type
+                if len(company_parts) > 1 and is_employment_type(
+                    company_parts[1].strip()
+                ):
+                    position_info["employment_type"] = extract_employment_type(
+                        company_parts[1].strip()
+                    )
+            else:
+                position_info["company"] = company_text
             position_info["work_times"] = (
                 outer_positions[2].locator("span").first.inner_text()
             )
@@ -185,17 +196,19 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
             # Smart classification for the 4th element (could be location or employment type)
             fourth_element_text = outer_positions[3].locator("span").first.inner_text()
             if is_employment_type(fourth_element_text):
-                position_info["employment_type"] = extract_employment_type(
-                    fourth_element_text
-                )
+                # Only update if we don't already have an employment type from company text
+                if not position_info["employment_type"]:
+                    position_info["employment_type"] = extract_employment_type(
+                        fourth_element_text
+                    )
                 position_info["location"] = ""
             elif is_geographic_location(fourth_element_text):
                 position_info["location"] = fourth_element_text
-                position_info["employment_type"] = ""
+                # Don't clear employment_type if already set from company text
             else:
                 # Default to location for backward compatibility
                 position_info["location"] = fourth_element_text
-                position_info["employment_type"] = ""
+                # Don't clear employment_type if already set from company text
         elif len(outer_positions) == 3:
             # Check if second or third element contains work times (has ·, - and year patterns)
             second_element_text = outer_positions[1].inner_text()
@@ -213,9 +226,20 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
             if is_second_dates:
                 # Pattern: company, work_times, location/employment_type
                 position_info["position_title"] = ""
-                position_info["company"] = (
-                    outer_positions[0].locator("span").first.inner_text()
-                )
+                company_text = outer_positions[0].locator("span").first.inner_text()
+                # Check if company text contains employment type after dot separator
+                if "·" in company_text:
+                    company_parts = company_text.split("·")
+                    position_info["company"] = company_parts[0].strip()
+                    # Check if the part after dot is employment type
+                    if len(company_parts) > 1 and is_employment_type(
+                        company_parts[1].strip()
+                    ):
+                        position_info["employment_type"] = extract_employment_type(
+                            company_parts[1].strip()
+                        )
+                else:
+                    position_info["company"] = company_text
                 position_info["work_times"] = (
                     outer_positions[1].locator("span").first.inner_text()
                 )
@@ -225,37 +249,61 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                     outer_positions[2].locator("span").first.inner_text()
                 )
                 if is_employment_type(third_element_text):
-                    position_info["employment_type"] = extract_employment_type(
-                        third_element_text
-                    )
+                    # Only update if we don't already have an employment type from company text
+                    if not position_info["employment_type"]:
+                        position_info["employment_type"] = extract_employment_type(
+                            third_element_text
+                        )
                     position_info["location"] = ""
                 elif is_geographic_location(third_element_text):
                     position_info["location"] = third_element_text
-                    position_info["employment_type"] = ""
+                    # Don't clear employment_type if already set from company text
                 else:
                     # Default to location for backward compatibility
                     position_info["location"] = third_element_text
-                    position_info["employment_type"] = ""
+                    # Don't clear employment_type if already set from company text
             elif is_third_dates:
                 # Pattern: position_title, company, work_times
                 title_text = outer_positions[0].locator("span").first.inner_text()
                 position_info["position_title"] = clean_single_string_duplicates(
                     title_text
                 )
-                position_info["company"] = (
-                    outer_positions[1].locator("span").first.inner_text()
-                )
+                company_text = outer_positions[1].locator("span").first.inner_text()
+                # Check if company text contains employment type after dot separator
+                if "·" in company_text:
+                    company_parts = company_text.split("·")
+                    position_info["company"] = company_parts[0].strip()
+                    # Check if the part after dot is employment type
+                    if len(company_parts) > 1 and is_employment_type(
+                        company_parts[1].strip()
+                    ):
+                        position_info["employment_type"] = extract_employment_type(
+                            company_parts[1].strip()
+                        )
+                else:
+                    position_info["company"] = company_text
                 position_info["work_times"] = (
                     outer_positions[2].locator("span").first.inner_text()
                 )
                 position_info["location"] = ""
-                position_info["employment_type"] = ""
+                # Don't clear employment_type if already set from company text
             else:
                 # Fallback: assume no dates, treat as company, unknown, location/employment_type
                 position_info["position_title"] = ""
-                position_info["company"] = (
-                    outer_positions[0].locator("span").first.inner_text()
-                )
+                company_text = outer_positions[0].locator("span").first.inner_text()
+                # Check if company text contains employment type after dot separator
+                if "·" in company_text:
+                    company_parts = company_text.split("·")
+                    position_info["company"] = company_parts[0].strip()
+                    # Check if the part after dot is employment type
+                    if len(company_parts) > 1 and is_employment_type(
+                        company_parts[1].strip()
+                    ):
+                        position_info["employment_type"] = extract_employment_type(
+                            company_parts[1].strip()
+                        )
+                else:
+                    position_info["company"] = company_text
                 position_info["work_times"] = ""
 
                 # Smart classification for the 3rd element
@@ -263,30 +311,43 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                     outer_positions[2].locator("span").first.inner_text()
                 )
                 if is_employment_type(third_element_text):
-                    position_info["employment_type"] = extract_employment_type(
-                        third_element_text
-                    )
+                    # Only update if we don't already have an employment type from company text
+                    if not position_info["employment_type"]:
+                        position_info["employment_type"] = extract_employment_type(
+                            third_element_text
+                        )
                     position_info["location"] = ""
                 elif is_geographic_location(third_element_text):
                     position_info["location"] = third_element_text
-                    position_info["employment_type"] = ""
+                    # Don't clear employment_type if already set from company text
                 else:
                     # Default to location for backward compatibility
                     position_info["location"] = third_element_text
-                    position_info["employment_type"] = ""
+                    # Don't clear employment_type if already set from company text
         else:
             # Default case
             position_info["position_title"] = ""
             if len(outer_positions) > 0:
-                position_info["company"] = (
-                    outer_positions[0].locator("span").first.inner_text()
-                )
+                company_text = outer_positions[0].locator("span").first.inner_text()
+                # Check if company text contains employment type after dot separator
+                if "·" in company_text:
+                    company_parts = company_text.split("·")
+                    position_info["company"] = company_parts[0].strip()
+                    # Check if the part after dot is employment type
+                    if len(company_parts) > 1 and is_employment_type(
+                        company_parts[1].strip()
+                    ):
+                        position_info["employment_type"] = extract_employment_type(
+                            company_parts[1].strip()
+                        )
+                else:
+                    position_info["company"] = company_text
             if len(outer_positions) > 1:
                 position_info["work_times"] = (
                     outer_positions[1].locator("span").first.inner_text()
                 )
             position_info["location"] = ""
-            position_info["employment_type"] = ""
+            # Don't clear employment_type if already set from company text
 
         # Validate field assignments using regex (more accurate than string checks)
         if position_info["location"] and "·" in position_info["location"]:
