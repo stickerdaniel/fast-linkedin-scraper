@@ -210,3 +210,4 @@ CLAUDE.md
 old_files/
 
 tests/output/
+*.local*
