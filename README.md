@@ -27,12 +27,12 @@ with LinkedInSession.from_cookie(li_at_cookie) as session:
 {
   "linkedin_url": "https://www.linkedin.com/in/stickerdaniel/",
   "name": "Daniel Sticker",
-  "headline": "Computer Science (B.Sc.) Student @ RWTH Aachen University",
+  "headline": "Computer Science @ RWTH Aachen University",
   "location": "Greater Toronto Area, Canada ",
   "about": [],
   "experiences": [
     {
-      "institution_name": "nGENn GmbH · Work Study",
+      "institution_name": "nGENn GmbH",
       "linkedin_url": "https://www.linkedin.com/company/41217272/",
       "from_date": "Oct 2024",
       "to_date": "Apr 2025",
@@ -40,7 +40,7 @@ with LinkedInSession.from_cookie(li_at_cookie) as session:
       "position_title": "Software Developer",
       "duration": "7 mos",
       "location": "Frankfurt Rhine-Main Metropolitan Area · Remote",
-      "employment_type": "",
+      "employment_type": "Work Study",
       "skills": [
         "Gitlab",
         "Python (Programming Language)",
