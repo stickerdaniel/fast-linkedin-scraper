@@ -36,11 +36,11 @@
             "problemMatcher": []
         },
         {
-            "label": "Run Auth Test",
-            "detail": "Test the new LinkedIn session authentication",
+            "label": "uv run tests/get_profile_test.py",
+            "detail": "Test LinkedIn profile scraping",
             "type": "shell",
             "command": "uv",
-            "args": ["run", "python", "test_singleton_auth.py"],
+            "args": ["run", "tests/get_profile_test.py"],
             "group": "test",
             "presentation": {
                 "reveal": "always",
@@ -48,6 +48,6 @@
                 "focus": true
             },
             "problemMatcher": []
-        },
+        }
     ]
 }
