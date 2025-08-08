@@ -6,7 +6,7 @@ from typing import Optional
 from playwright.sync_api import Page, Locator
 from pydantic import HttpUrl
 
-from ...models.person import Person, Accomplishment
+from ...models.person import Person, Honor, Language
 from ..utils import scroll_to_bottom
 
 
@@ -44,9 +44,9 @@ def _scrape_main_profile_accomplishments(page: Page, person: Person) -> None:
             if honors_section.is_visible():
                 items = honors_section.locator("li").all()
                 for item in items[:10]:  # Limit to first 10 to avoid too many
-                    accomplishment = _extract_honor_from_main_profile(item)
-                    if accomplishment:
-                        person.add_accomplishment(accomplishment)
+                    honor = _extract_honor_from_main_profile(item)
+                    if honor:
+                        person.add_honor(honor)
         except Exception:
             pass
 
@@ -56,14 +56,13 @@ def _scrape_main_profile_accomplishments(page: Page, person: Person) -> None:
             if languages_section.is_visible():
                 items = languages_section.locator("li").all()
                 for item in items[:10]:  # Limit to first 10
-                    accomplishment = _extract_language_from_main_profile(item)
-                    if accomplishment:
+                    language = _extract_language_from_main_profile(item)
+                    if language:
                         # Check if not already added (to avoid duplicates)
                         if not any(
-                            a.title == accomplishment.title and a.category == "Language"
-                            for a in person.accomplishments
+                            lang.name == language.name for lang in person.languages
                         ):
-                            person.add_accomplishment(accomplishment)
+                            person.add_language(language)
         except Exception:
             pass
 
@@ -93,14 +92,11 @@ def _scrape_honors_details(page: Page, person: Person) -> None:
             items = list_container.locator(".pvs-list__paged-list-item").all()
 
             for item in items[:20]:  # Limit to prevent too many
-                accomplishment = _extract_honor_from_details(item)
-                if accomplishment:
+                honor = _extract_honor_from_details(item)
+                if honor:
                     # Check if not already added from main profile
-                    if not any(
-                        a.title == accomplishment.title and a.category == "Honor"
-                        for a in person.accomplishments
-                    ):
-                        person.add_accomplishment(accomplishment)
+                    if not any(h.title == honor.title for h in person.honors):
+                        person.add_honor(honor)
 
     except Exception:
         pass
@@ -128,20 +124,17 @@ def _scrape_languages_details(page: Page, person: Person) -> None:
             items = list_container.locator(".pvs-list__paged-list-item").all()
 
             for item in items[:20]:  # Limit to prevent too many
-                accomplishment = _extract_language_from_details(item)
-                if accomplishment:
+                language = _extract_language_from_details(item)
+                if language:
                     # Check if not already added from main profile
-                    if not any(
-                        a.title == accomplishment.title and a.category == "Language"
-                        for a in person.accomplishments
-                    ):
-                        person.add_accomplishment(accomplishment)
+                    if not any(lang.name == language.name for lang in person.languages):
+                        person.add_language(language)
 
     except Exception:
         pass
 
 
-def _extract_honor_from_main_profile(item: Locator) -> Optional[Accomplishment]:
+def _extract_honor_from_main_profile(item: Locator) -> Optional[Honor]:
     """Extract honor/award from main profile list item."""
     try:
         # Get title
@@ -152,7 +145,8 @@ def _extract_honor_from_main_profile(item: Locator) -> Optional[Accomplishment]:
             return None
 
         # Get issuer and date info
-        institution_name = ""
+        issuer = ""
+        date = ""
         issuer_elem = item.locator("span:has-text('Issued by')").first
         if issuer_elem.is_visible():
             issuer_text = issuer_elem.inner_text()
@@ -160,19 +154,21 @@ def _extract_honor_from_main_profile(item: Locator) -> Optional[Accomplishment]:
             if "Issued by" in issuer_text:
                 parts = issuer_text.replace("Issued by", "").split("·")
                 if parts:
-                    institution_name = parts[0].strip()
+                    issuer = parts[0].strip()
+                    if len(parts) > 1:
+                        date = parts[1].strip()
 
-        return Accomplishment(
-            category="Honor",
+        return Honor(
             title=title,
-            institution_name=institution_name if institution_name else None,
+            issuer=issuer if issuer else None,
+            date=date if date else None,
         )
 
     except Exception:
         return None
 
 
-def _extract_honor_from_details(item: Locator) -> Optional[Accomplishment]:
+def _extract_honor_from_details(item: Locator) -> Optional[Honor]:
     """Extract honor/award from details page list item."""
     try:
         container = item.locator("div[data-view-name='profile-component-entity']").first
@@ -194,7 +190,9 @@ def _extract_honor_from_details(item: Locator) -> Optional[Accomplishment]:
             return None
 
         # Get institution
-        institution_name = ""
+        issuer = ""
+        date = ""
+        associated_with = ""
 
         # Try "Issued by" first
         issuer_elem = details.locator("span:has-text('Issued by')").first
@@ -203,52 +201,46 @@ def _extract_honor_from_details(item: Locator) -> Optional[Accomplishment]:
             if "Issued by" in issuer_text:
                 parts = issuer_text.replace("Issued by", "").split("·")
                 if parts:
-                    institution_name = parts[0].strip()
+                    issuer = parts[0].strip()
+                    if len(parts) > 1:
+                        date = parts[1].strip()
 
-        # If no issuer, try "Associated with"
-        if not institution_name:
-            assoc_elem = details.locator("span:has-text('Associated with')").first
-            if assoc_elem.is_visible():
-                assoc_text = assoc_elem.inner_text()
-                if "Associated with" in assoc_text:
-                    institution_name = assoc_text.replace("Associated with", "").strip()
+        # Try "Associated with"
+        assoc_elem = details.locator("span:has-text('Associated with')").first
+        if assoc_elem.is_visible():
+            assoc_text = assoc_elem.inner_text()
+            if "Associated with" in assoc_text:
+                associated_with = assoc_text.replace("Associated with", "").strip()
 
-        # Try to get LinkedIn URL - could be institution link or document link
-        linkedin_url = None
+        # Try to get document URL
+        document_url = None
         try:
             links = container.locator("a").all()
             for link in links:
                 if link.is_visible():
                     href = link.get_attribute("href")
                     if href:
-                        # Check for various types of links
-                        if "/company/" in href or "/school/" in href:
-                            # Institution link
-                            linkedin_url = href
-                            break
-                        elif "single-media-viewer" in href or "type=DOCUMENT" in href:
+                        # Check for document/media links
+                        if "single-media-viewer" in href or "type=DOCUMENT" in href:
                             # Document/media link (e.g., certificate PDF)
-                            linkedin_url = href
-                            break
-                        elif "/in/" in href and "add-edit" not in href:
-                            # Person link (rare but possible for recommendations)
-                            linkedin_url = href
+                            document_url = href
                             break
         except Exception:
             pass
 
-        return Accomplishment(
-            category="Honor",
+        return Honor(
             title=title,
-            institution_name=institution_name if institution_name else None,
-            linkedin_url=HttpUrl(linkedin_url) if linkedin_url else None,
+            issuer=issuer if issuer else None,
+            date=date if date else None,
+            associated_with=associated_with if associated_with else None,
+            document_url=HttpUrl(document_url) if document_url else None,
         )
 
     except Exception:
         return None
 
 
-def _extract_language_from_main_profile(item: Locator) -> Optional[Accomplishment]:
+def _extract_language_from_main_profile(item: Locator) -> Optional[Language]:
     """Extract language from main profile list item."""
     try:
         text = item.inner_text()
@@ -268,9 +260,8 @@ def _extract_language_from_main_profile(item: Locator) -> Optional[Accomplishmen
                     break
 
             if language:
-                title = f"{language} - {proficiency}" if proficiency else language
-                return Accomplishment(
-                    category="Language", title=title, institution_name=None
+                return Language(
+                    name=language, proficiency=proficiency if proficiency else None
                 )
 
         return None
@@ -279,7 +270,7 @@ def _extract_language_from_main_profile(item: Locator) -> Optional[Accomplishmen
         return None
 
 
-def _extract_language_from_details(item: Locator) -> Optional[Accomplishment]:
+def _extract_language_from_details(item: Locator) -> Optional[Language]:
     """Extract language from details page list item."""
     try:
         # Get language name
@@ -299,9 +290,7 @@ def _extract_language_from_details(item: Locator) -> Optional[Accomplishment]:
             if lines:
                 proficiency = lines[0].strip()
 
-        title = f"{language} - {proficiency}" if proficiency else language
-
-        return Accomplishment(category="Language", title=title, institution_name=None)
+        return Language(name=language, proficiency=proficiency if proficiency else None)
 
     except Exception:
         return None

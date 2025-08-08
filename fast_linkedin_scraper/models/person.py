@@ -37,15 +37,21 @@ class Interest(BaseModel):
     followers: Optional[str] = None
 
 
-class Accomplishment(BaseModel):
-    """Achievement/accomplishment entry."""
+class Honor(BaseModel):
+    """Honor/award entry."""
 
-    category: Optional[str] = None
-    title: Optional[str] = None
-    institution_name: Optional[str] = None
-    linkedin_url: Optional[HttpUrl] = (
-        None  # Can be institution URL or document/certificate URL
-    )
+    title: str
+    issuer: Optional[str] = None  # Institution that issued the honor
+    date: Optional[str] = None  # Date issued
+    associated_with: Optional[str] = None  # Associated organization
+    document_url: Optional[HttpUrl] = None  # Link to certificate/document
+
+
+class Language(BaseModel):
+    """Language proficiency entry."""
+
+    name: str
+    proficiency: Optional[str] = None  # e.g., "Native or bilingual proficiency"
 
 
 class Person(BaseModel):
@@ -59,7 +65,8 @@ class Person(BaseModel):
     experiences: List[Experience] = Field(default_factory=list)
     educations: List[Education] = Field(default_factory=list)
     interests: List[Interest] = Field(default_factory=list)
-    accomplishments: List[Accomplishment] = Field(default_factory=list)
+    honors: List[Honor] = Field(default_factory=list)
+    languages: List[Language] = Field(default_factory=list)
     contacts: List[Contact] = Field(default_factory=list)
     also_viewed_urls: List[HttpUrl] = Field(default_factory=list)
     company: Optional[str] = None
@@ -78,9 +85,13 @@ class Person(BaseModel):
         """Add an interest entry."""
         self.interests.append(interest)
 
-    def add_accomplishment(self, accomplishment: Accomplishment) -> None:
-        """Add an accomplishment entry."""
-        self.accomplishments.append(accomplishment)
+    def add_honor(self, honor: Honor) -> None:
+        """Add an honor/award entry."""
+        self.honors.append(honor)
+
+    def add_language(self, language: Language) -> None:
+        """Add a language entry."""
+        self.languages.append(language)
 
     def add_contact(self, contact: Contact) -> None:
         """Add a contact entry."""

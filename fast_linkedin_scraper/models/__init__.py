@@ -1,7 +1,7 @@
 from .common import Contact, Institution
 from .company import Company, Employee
 from .job import Job, JobSearch
-from .person import Accomplishment, Education, Experience, Interest, Person
+from .person import Education, Experience, Honor, Interest, Language, Person
 
 __all__ = [
     "Contact",
@@ -10,7 +10,8 @@ __all__ = [
     "Employee",
     "Job",
     "JobSearch",
-    "Accomplishment",
+    "Honor",
+    "Language",
     "Education",
     "Experience",
     "Interest",
