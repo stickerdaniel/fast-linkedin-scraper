@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
-from .common import Contact, BaseInstitution
+from .common import BaseInstitution, Connection, ContactInfo
 
 
 class Experience(BaseInstitution):
@@ -67,7 +67,9 @@ class Person(BaseModel):
     interests: List[Interest] = Field(default_factory=list)
     honors: List[Honor] = Field(default_factory=list)
     languages: List[Language] = Field(default_factory=list)
-    contacts: List[Contact] = Field(default_factory=list)
+    contact_info: Optional[ContactInfo] = None
+    connections: List[Connection] = Field(default_factory=list)
+    connection_count: Optional[int] = None  # Total number of connections
     also_viewed_urls: List[HttpUrl] = Field(default_factory=list)
     company: Optional[str] = None
     job_title: Optional[str] = None
@@ -93,9 +95,17 @@ class Person(BaseModel):
         """Add a language entry."""
         self.languages.append(language)
 
-    def add_contact(self, contact: Contact) -> None:
-        """Add a contact entry."""
-        self.contacts.append(contact)
+    def add_connection(self, connection: Connection) -> None:
+        """Add a connection entry."""
+        self.connections.append(connection)
+
+    def set_contact_info(self, contact_info: ContactInfo) -> None:
+        """Set contact information."""
+        self.contact_info = contact_info
+
+    def set_connection_count(self, count: int) -> None:
+        """Set the total connection count."""
+        self.connection_count = count
 
     def add_location(self, location: str) -> None:
         """Add location information."""

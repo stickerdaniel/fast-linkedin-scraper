@@ -5,6 +5,7 @@ from pydantic import HttpUrl
 
 from ...models.person import Person
 from .accomplishments import scrape_accomplishments
+from .contacts import scrape_contacts
 from .education import scrape_educations
 from .experience import scrape_experiences
 from .interests import scrape_interests
@@ -64,8 +65,9 @@ class PersonScraper:
         scrape_accomplishments(self.page, person)
         self.page.wait_for_timeout(1000)  # 1 second between sections
 
-        # # Scrape connections
-        # scrape_connections(self.page, person)
+        # Scrape contacts
+        scrape_contacts(self.page, person)
+        self.page.wait_for_timeout(1000)  # 1 second between sections
 
         return person
 

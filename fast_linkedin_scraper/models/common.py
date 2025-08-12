@@ -3,12 +3,21 @@ from typing import Optional
 from pydantic import BaseModel, Field, HttpUrl
 
 
-class Contact(BaseModel):
-    """Contact information for a person."""
+class ContactInfo(BaseModel):
+    """Contact information (email, phone, website, etc.)."""
 
-    name: Optional[str] = None
-    occupation: Optional[str] = None
-    url: Optional[HttpUrl] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    linkedin_url: Optional[str] = None
+
+
+class Connection(BaseModel):
+    """A connection/contact person on LinkedIn."""
+
+    name: str
+    headline: Optional[str] = None  # Their professional headline/title
+    url: Optional[HttpUrl] = None  # Their LinkedIn profile URL
 
 
 class BaseInstitution(BaseModel):

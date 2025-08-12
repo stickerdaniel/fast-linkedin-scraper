@@ -2,11 +2,11 @@
 
 from typing import Optional
 
-from playwright.sync_api import Page, Locator
+from playwright.sync_api import Locator, Page
 from pydantic import HttpUrl
 
+from ...models.common import Connection
 from ...models.person import Person
-from ...models.common import Contact
 
 
 def scrape_connections(page: Page, person: Person) -> None:
@@ -38,14 +38,14 @@ def scrape_connections(page: Page, person: Person) -> None:
             try:
                 connection_data = _extract_connection_data(card)
                 if connection_data:
-                    contact = Contact(
+                    connection = Connection(
                         name=connection_data.get("name", ""),
-                        occupation=connection_data.get("occupation", ""),
+                        headline=connection_data.get("occupation", "") or None,
                         url=HttpUrl(connection_data["url"])
                         if connection_data.get("url")
                         else None,
                     )
-                    person.add_contact(contact)
+                    person.add_connection(connection)
             except Exception:
                 # Skip this connection if extraction fails
                 continue
