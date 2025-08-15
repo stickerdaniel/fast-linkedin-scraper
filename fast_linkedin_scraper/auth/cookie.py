@@ -68,7 +68,7 @@ class CookieAuth(LinkedInAuth):
             )
 
             # At this point, if we're logged in, we're good
-            if self.is_logged_in(page):
+            if await self.is_logged_in(page):
                 return True
 
             # Feed navigation worked but we are not logged in? (case should not happen)

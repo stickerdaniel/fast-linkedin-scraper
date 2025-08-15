@@ -86,13 +86,13 @@ class PasswordAuth(LinkedInAuth):
                         f"⏳ Waiting {interactive_timeout} ms for manual completion..."
                     )
                     await page.wait_for_timeout(interactive_timeout)
-                return self.is_logged_in(page)
+                return await self.is_logged_in(page)
             else:
                 raise SecurityChallengeError(
                     "Security challenge required - enable interactive mode"
                 )
 
-        if self.is_logged_in(page):
+        if await self.is_logged_in(page):
             return True
 
         # Check for invalid credentials # TODO: check correct error message

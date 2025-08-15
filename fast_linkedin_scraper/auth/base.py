@@ -71,7 +71,7 @@ class LinkedInAuth(ABC):
         # Default implementation does nothing
         pass
 
-    def is_logged_in(self, page: Page) -> bool:
+    async def is_logged_in(self, page: Page) -> bool:
         """Check if already logged in by looking at current URL and page elements.
 
         Args:
