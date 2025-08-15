@@ -6,6 +6,7 @@ scraper (contact info, connection count, and connection list when available),
 and writes the resulting `Person` model to JSON under `tests/output/`.
 """
 
+import asyncio
 import json
 import os
 
@@ -32,36 +33,44 @@ USERNAMES = [
 OUTPUT_DIR = "output"
 
 
-with LinkedInSession.from_cookie(cookie, headless=True) as session:
-    # Get authenticated Playwright page
-    page = session._ensure_authenticated()
+async def main():
+    assert cookie is not None  # Type narrowing for type checker
+    async with LinkedInSession.from_cookie(cookie, headless=True) as session:
+        # Get authenticated Playwright page
+        page = session._ensure_authenticated()
 
-    for username in USERNAMES:
-        profile_url = f"https://www.linkedin.com/in/{username}/"
+        for username in USERNAMES:
+            profile_url = f"https://www.linkedin.com/in/{username}/"
 
-        # Initialize Person with validated LinkedIn URL
-        person: Person = Person(linkedin_url=HttpUrl(profile_url))
+            # Initialize Person with validated LinkedIn URL
+            person: Person = Person(linkedin_url=HttpUrl(profile_url))
 
-        # Run only the contacts scraping logic
-        scrape_contacts(page, person)
+            # Run only the contacts scraping logic
+            await scrape_contacts(page, person)
 
-        # Prepare output path (auto-increment if file exists)
-        tests_output_dir = os.path.join("tests", OUTPUT_DIR)
-        os.makedirs(tests_output_dir, exist_ok=True)
+            # Prepare output path (auto-increment if file exists)
+            tests_output_dir = os.path.join("tests", OUTPUT_DIR)
+            os.makedirs(tests_output_dir, exist_ok=True)
 
-        base_filename = f"{username}_contacts"
-        extension = ".json"
-        filename = os.path.join(tests_output_dir, f"{base_filename}{extension}")
+            base_filename = f"{username}_contacts"
+            extension = ".json"
+            filename = os.path.join(tests_output_dir, f"{base_filename}{extension}")
 
-        counter = 1
-        while os.path.exists(filename):
-            filename = os.path.join(
-                tests_output_dir, f"{base_filename}_{counter}{extension}"
-            )
-            counter += 1
+            counter = 1
+            while os.path.exists(filename):
+                filename = os.path.join(
+                    tests_output_dir, f"{base_filename}_{counter}{extension}"
+                )
+                counter += 1
 
-        # Write Person model to JSON
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(person.model_dump(), f, indent=2, default=str, ensure_ascii=False)
+            # Write Person model to JSON
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(
+                    person.model_dump(), f, indent=2, default=str, ensure_ascii=False
+                )
 
-        print(f"Contacts saved to: {filename}")
+            print(f"Contacts saved to: {filename}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

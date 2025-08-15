@@ -1,6 +1,6 @@
 """High-level LinkedIn scraping session API."""
 
-from playwright.sync_api import Page
+from playwright.async_api import Page
 
 from .auth import CookieAuth, LinkedInAuth, PasswordAuth
 from .browser import BrowserContextManager
@@ -83,7 +83,7 @@ class LinkedInSession:
             )
         return self._page
 
-    def get_profile(self, url: str) -> Person:
+    async def get_profile(self, url: str) -> Person:
         """Get LinkedIn profile data.
 
         Args:
@@ -99,9 +99,9 @@ class LinkedInSession:
 
         page: Page = self._ensure_authenticated()
         scraper: PersonScraper = PersonScraper(page)
-        return scraper.scrape_profile(url)
+        return await scraper.scrape_profile(url)
 
-    def get_company(self, url: str) -> dict:
+    async def get_company(self, url: str) -> dict:
         """Get LinkedIn company data.
 
         Args:
@@ -115,7 +115,9 @@ class LinkedInSession:
         """
         raise NotImplementedError("Company scraping not yet implemented")
 
-    def search_jobs(self, keywords: str, location: str = "", limit: int = 25) -> list:
+    async def search_jobs(
+        self, keywords: str, location: str = "", limit: int = 25
+    ) -> list:
         """Search for jobs on LinkedIn.
 
         Args:
@@ -131,29 +133,29 @@ class LinkedInSession:
         """
         raise NotImplementedError("Job search not yet implemented")
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Close LinkedIn session and clean up browser resources."""
         self._authenticated = False
         if self._browser_session:
-            self._browser_session.__exit__(None, None, None)
+            await self._browser_session.__aexit__(None, None, None)
             self._browser_session = None
         self._context = None
         self._page = None
 
-    def __enter__(self):
+    async def __aenter__(self):
         """Context manager entry - initialize browser and authenticate."""
         try:
             self._browser_session = BrowserContextManager(headless=self._headless)
-            self._context = self._browser_session.__enter__()
-            self._page = self._auth.login(context=self._context)
+            self._context = await self._browser_session.__aenter__()
+            self._page = await self._auth.login(context=self._context)
             self._authenticated = True
             return self
         except Exception:
             # Clean up on failure
             if self._browser_session:
-                self._browser_session.__exit__(None, None, None)
+                await self._browser_session.__aexit__(None, None, None)
             raise
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit - cleanup resources."""
-        self.close()
+        await self.close()

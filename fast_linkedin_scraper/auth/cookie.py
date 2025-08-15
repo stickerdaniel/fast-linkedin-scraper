@@ -1,4 +1,4 @@
-from playwright.sync_api import BrowserContext, Page
+from playwright.async_api import BrowserContext, Page
 
 from ..exceptions import InvalidCredentialsError
 from .base import LinkedInAuth
@@ -25,14 +25,14 @@ class CookieAuth(LinkedInAuth):
         if not self.is_cookie_valid():
             raise InvalidCredentialsError("Invalid LinkedIn cookie format")
 
-    def _customize_context(self, context: BrowserContext):
+    async def _customize_context(self, context: BrowserContext):
         """Add LinkedIn cookie to the existing context.
 
         Args:
             context: Browser context instance
         """
         # Set the li_at cookie BEFORE creating any pages
-        context.add_cookies(
+        await context.add_cookies(
             [
                 {
                     "name": "li_at",
@@ -46,7 +46,7 @@ class CookieAuth(LinkedInAuth):
             ]
         )
 
-    def _authenticate(self, page: Page) -> bool:
+    async def _authenticate(self, page: Page) -> bool:
         """Authenticate using li_at cookie.
 
         Args:
@@ -61,14 +61,14 @@ class CookieAuth(LinkedInAuth):
         """
         try:
             # Try to navigate to LinkedIn feed page (cookie is already set in context)
-            page.goto(
+            await page.goto(
                 "https://www.linkedin.com/feed/",
                 wait_until="domcontentloaded",
                 # this will throw an error if the cookie is invalid
             )
 
             # At this point, if we're logged in, we're good
-            if self.is_logged_in(page):
+            if await self.is_logged_in(page):
                 return True
 
             # Feed navigation worked but we are not logged in? (case should not happen)

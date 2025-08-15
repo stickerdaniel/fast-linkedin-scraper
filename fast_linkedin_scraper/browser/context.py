@@ -1,6 +1,6 @@
 """Simple browser management for LinkedIn scraping."""
 
-from playwright.sync_api import BrowserContext, sync_playwright
+from playwright.async_api import BrowserContext, async_playwright
 
 from ..config import BrowserConfig
 
@@ -12,18 +12,18 @@ class BrowserContextManager:
         self.headless = headless
         self.playwright_context = None
 
-    def __enter__(self) -> BrowserContext:
+    async def __aenter__(self) -> BrowserContext:
         """Create and return browser context with standard configuration."""
-        self.playwright_context = sync_playwright()
-        playwright = self.playwright_context.__enter__()
+        self.playwright_context = async_playwright()
+        playwright = await self.playwright_context.__aenter__()
 
-        browser = playwright.chromium.launch(
+        browser = await playwright.chromium.launch(
             headless=self.headless,
             args=BrowserConfig.CHROME_ARGS,
             channel="chrome",
         )
 
-        context = browser.new_context(
+        context = await browser.new_context(
             user_agent=BrowserConfig.USER_AGENT,
             viewport=BrowserConfig.VIEWPORT,
         )
@@ -31,7 +31,7 @@ class BrowserContextManager:
 
         return context
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Ensure browser and playwright are properly closed."""
         if self.playwright_context:
-            self.playwright_context.__exit__(exc_type, exc_val, exc_tb)
+            await self.playwright_context.__aexit__(exc_type, exc_val, exc_tb)

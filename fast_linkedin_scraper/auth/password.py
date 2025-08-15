@@ -1,4 +1,4 @@
-from playwright.sync_api import Page
+from playwright.async_api import Page
 
 from ..exceptions import (
     InvalidCredentialsError,
@@ -24,7 +24,7 @@ class PasswordAuth(LinkedInAuth):
         self.password = password
         self.interactive = interactive
 
-    def _authenticate(self, page: Page) -> bool:
+    async def _authenticate(self, page: Page) -> bool:
         """Authenticate using email and password.
 
         Args:
@@ -42,28 +42,28 @@ class PasswordAuth(LinkedInAuth):
         """
         try:
             # Navigate to login page
-            page.goto("https://www.linkedin.com/login")
+            await page.goto("https://www.linkedin.com/login")
 
             # Fill in credentials using ID selectors
             email_input = page.locator("#username")
-            email_input.clear()
-            email_input.fill(self.email)
+            await email_input.clear()
+            await email_input.fill(self.email)
 
             # Fill in password
             password_input = page.locator("#password")
-            password_input.clear()
-            password_input.fill(self.password)
+            await password_input.clear()
+            await password_input.fill(self.password)
 
             # Submit the form using keyboard
-            password_input.press("Enter")
+            await password_input.press("Enter")
 
             # Handle post-login scenarios
-            return self._handle_post_login_scenarios(page, self.interactive)
+            return await self._handle_post_login_scenarios(page, self.interactive)
 
         except Exception as e:
             raise LoginTimeoutError(f"Login failed: {str(e)}") from e
 
-    def _handle_post_login_scenarios(
+    async def _handle_post_login_scenarios(
         self, page: Page, interactive: bool = False, interactive_timeout: int = 3000
     ) -> bool:
         """Handle various post-login scenarios and errors."""
@@ -73,7 +73,7 @@ class PasswordAuth(LinkedInAuth):
         if (
             "challenge" in current_url
             or "checkpoint" in current_url
-            or page.locator("text=security challenge").count() > 0
+            or await page.locator("text=security challenge").count() > 0
         ):
             if interactive:
                 print(
@@ -85,14 +85,14 @@ class PasswordAuth(LinkedInAuth):
                     print(
                         f"⏳ Waiting {interactive_timeout} ms for manual completion..."
                     )
-                    page.wait_for_timeout(interactive_timeout)
-                return self.is_logged_in(page)
+                    await page.wait_for_timeout(interactive_timeout)
+                return await self.is_logged_in(page)
             else:
                 raise SecurityChallengeError(
                     "Security challenge required - enable interactive mode"
                 )
 
-        if self.is_logged_in(page):
+        if await self.is_logged_in(page):
             return True
 
         # Check for invalid credentials # TODO: check correct error message
@@ -100,7 +100,7 @@ class PasswordAuth(LinkedInAuth):
             "text=Wrong email or password",
         ]
         for selector in error_selectors:
-            if page.locator(selector).count() > 0:
+            if await page.locator(selector).count() > 0:
                 raise InvalidCredentialsError("Invalid email or password")
 
         # If we're still on login page, something went wrong

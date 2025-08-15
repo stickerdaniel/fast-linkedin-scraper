@@ -3,7 +3,7 @@
 import os
 from typing import Optional
 
-from playwright.sync_api import Page, Locator
+from playwright.async_api import Page, Locator
 from pydantic import HttpUrl
 
 from ...models.person import Person, Education
@@ -16,7 +16,7 @@ from .utils import (
 )
 
 
-def scrape_educations(page: Page, person: Person) -> None:
+async def scrape_educations(page: Page, person: Person) -> None:
     """Scrape education information from LinkedIn profile.
 
     Args:
@@ -25,25 +25,25 @@ def scrape_educations(page: Page, person: Person) -> None:
     """
     # Navigate to education details page
     education_url = os.path.join(str(person.linkedin_url), "details/education")
-    page.goto(education_url)
+    await page.goto(education_url)
 
     # Wait for page to load
-    page.wait_for_timeout(2000)  # 2 seconds
+    await page.wait_for_timeout(2000)  # 2 seconds
 
     # Scroll to ensure all content is loaded
-    scroll_to_half(page)
-    page.wait_for_timeout(1000)  # 1 second
-    scroll_to_bottom(page)
-    page.wait_for_timeout(2000)  # 2 seconds for content to load
+    await scroll_to_half(page)
+    await page.wait_for_timeout(1000)  # 1 second
+    await scroll_to_bottom(page)
+    await page.wait_for_timeout(2000)  # 2 seconds for content to load
 
     # Find the main education container
     try:
         main_list = page.locator("main .pvs-list__container").first
-        if not main_list.is_visible():
+        if not await main_list.is_visible():
             return
 
         # Get all education items
-        education_items = main_list.locator(".pvs-list__paged-list-item").all()
+        education_items = await main_list.locator(".pvs-list__paged-list-item").all()
 
         for position_elem in education_items:
             try:
@@ -51,11 +51,11 @@ def scrape_educations(page: Page, person: Person) -> None:
                 position_container = position_elem.locator(
                     "div[data-view-name='profile-component-entity']"
                 ).first
-                if not position_container.is_visible():
+                if not await position_container.is_visible():
                     continue
 
                 # Get main elements - logo and details
-                elements = position_container.locator("> *").all()
+                elements = await position_container.locator("> *").all()
                 if len(elements) < 2:
                     continue
 
@@ -63,12 +63,12 @@ def scrape_educations(page: Page, person: Person) -> None:
                 position_details = elements[1]
 
                 # Extract institution LinkedIn URL
-                institution_linkedin_url = _extract_institution_url(
+                institution_linkedin_url = await _extract_institution_url(
                     institution_logo_elem
                 )
 
                 # Extract position details
-                position_details_list = position_details.locator("> *").all()
+                position_details_list = await position_details.locator("> *").all()
                 position_summary_details = (
                     position_details_list[0] if len(position_details_list) > 0 else None
                 )
@@ -80,13 +80,13 @@ def scrape_educations(page: Page, person: Person) -> None:
                     continue
 
                 # Extract education information
-                education_info = _extract_education_info(position_summary_details)
+                education_info = await _extract_education_info(position_summary_details)
 
                 # Extract description and skills
                 description = ""
                 skills = []
-                if position_summary_text and position_summary_text.is_visible():
-                    raw_text = position_summary_text.inner_text()
+                if position_summary_text and await position_summary_text.is_visible():
+                    raw_text = await position_summary_text.inner_text()
                     print(f"DEBUG: Education raw text: {repr(raw_text)}")
                     # Clean single element duplicates before processing
                     cleaned_text = clean_single_string_duplicates(raw_text)
@@ -118,19 +118,19 @@ def scrape_educations(page: Page, person: Person) -> None:
         pass
 
 
-def _extract_institution_url(institution_logo_elem: Locator) -> Optional[str]:
+async def _extract_institution_url(institution_logo_elem: Locator) -> Optional[str]:
     """Extract institution LinkedIn URL from logo element."""
     try:
         link_elem = institution_logo_elem.locator("> *").first
-        if link_elem.is_visible():
-            href = link_elem.get_attribute("href")
+        if await link_elem.is_visible():
+            href = await link_elem.get_attribute("href")
             return href if href else None
     except Exception:
         pass
     return None
 
 
-def _extract_education_info(position_summary_details: Locator) -> dict:
+async def _extract_education_info(position_summary_details: Locator) -> dict:
     """Extract education information from position summary element."""
     education_info = {
         "institution_name": "",
@@ -140,19 +140,21 @@ def _extract_education_info(position_summary_details: Locator) -> dict:
     }
 
     try:
-        outer_positions = position_summary_details.locator("> *").locator("> *").all()
+        outer_positions = (
+            await position_summary_details.locator("> *").locator("> *").all()
+        )
 
         # Extract institution name
         if len(outer_positions) > 0:
             institution_span = outer_positions[0].locator("span").first
-            if institution_span.is_visible():
-                education_info["institution_name"] = institution_span.inner_text()
+            if await institution_span.is_visible():
+                education_info["institution_name"] = await institution_span.inner_text()
 
         # Intelligently extract degree and dates using regex validation
         for i in range(1, len(outer_positions)):
             span = outer_positions[i].locator("span").first
-            if span.is_visible():
-                text = span.inner_text()
+            if await span.is_visible():
+                text = await span.inner_text()
 
                 # Use regex to check if this text is a date range
                 if is_date_range(text) and not education_info["from_date"]:

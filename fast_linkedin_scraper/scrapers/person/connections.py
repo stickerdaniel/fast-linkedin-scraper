@@ -2,14 +2,14 @@
 
 from typing import Optional
 
-from playwright.sync_api import Locator, Page
+from playwright.async_api import Locator, Page
 from pydantic import HttpUrl
 
 from ...models.common import Connection
 from ...models.person import Person
 
 
-def scrape_connections(page: Page, person: Person) -> None:
+async def scrape_connections(page: Page, person: Person) -> None:
     """Scrape connections information from LinkedIn profile.
 
     Args:
@@ -21,22 +21,24 @@ def scrape_connections(page: Page, person: Person) -> None:
         connections_url = (
             "https://www.linkedin.com/mynetwork/invite-connect/connections/"
         )
-        page.goto(connections_url)
+        await page.goto(connections_url)
 
         # Wait for page to load
-        page.wait_for_timeout(3000)  # 3 seconds for connections to load
+        await page.wait_for_timeout(3000)  # 3 seconds for connections to load
 
         # Find the connections container
         connections_container = page.locator(".mn-connections").first
-        if not connections_container.is_visible():
+        if not await connections_container.is_visible():
             return
 
         # Get all connection cards
-        connection_cards = connections_container.locator(".mn-connection-card").all()
+        connection_cards = await connections_container.locator(
+            ".mn-connection-card"
+        ).all()
 
         for card in connection_cards:
             try:
-                connection_data = _extract_connection_data(card)
+                connection_data = await _extract_connection_data(card)
                 if connection_data:
                     connection = Connection(
                         name=connection_data.get("name", ""),
@@ -55,30 +57,36 @@ def scrape_connections(page: Page, person: Person) -> None:
         pass
 
 
-def _extract_connection_data(card: Locator) -> Optional[dict]:
+async def _extract_connection_data(card: Locator) -> Optional[dict]:
     """Extract connection data from a connection card."""
     try:
         # Extract URL
         link_elem = card.locator(".mn-connection-card__link").first
-        if not link_elem.is_visible():
+        if not await link_elem.is_visible():
             return None
 
-        url = link_elem.get_attribute("href")
+        url = await link_elem.get_attribute("href")
         if not url:
             return None
 
         # Extract name
         details_elem = card.locator(".mn-connection-card__details").first
-        if not details_elem.is_visible():
+        if not await details_elem.is_visible():
             return None
 
         name_elem = details_elem.locator(".mn-connection-card__name").first
-        name = name_elem.inner_text().strip() if name_elem.is_visible() else ""
+        name = (
+            (await name_elem.inner_text()).strip()
+            if await name_elem.is_visible()
+            else ""
+        )
 
         # Extract occupation
         occupation_elem = details_elem.locator(".mn-connection-card__occupation").first
         occupation = (
-            occupation_elem.inner_text().strip() if occupation_elem.is_visible() else ""
+            (await occupation_elem.inner_text()).strip()
+            if await occupation_elem.is_visible()
+            else ""
         )
 
         return {

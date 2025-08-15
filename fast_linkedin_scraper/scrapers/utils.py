@@ -3,52 +3,52 @@
 import re
 from typing import Dict, Optional
 
-from playwright.sync_api import Locator, Page
+from playwright.async_api import Locator, Page
 from pydantic import HttpUrl
 
 
-def scroll_to_half(page: Page) -> None:
+async def scroll_to_half(page: Page) -> None:
     """Scroll to half of the page to trigger content loading."""
-    page.evaluate("window.scrollTo(0, Math.ceil(document.body.scrollHeight/2))")
+    await page.evaluate("window.scrollTo(0, Math.ceil(document.body.scrollHeight/2))")
 
 
-def scroll_to_bottom(page: Page) -> None:
+async def scroll_to_bottom(page: Page) -> None:
     """Scroll to bottom of the page to trigger content loading."""
-    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
 
 
-def safe_text_extract(locator: Locator) -> str:
+async def safe_text_extract(locator: Locator) -> str:
     """Safely extract text from a locator, returning empty string if not found."""
     try:
-        if locator.is_visible():
-            return locator.inner_text().strip()
+        if await locator.is_visible():
+            return (await locator.inner_text()).strip()
     except Exception:
         pass
     return ""
 
 
-def safe_attribute_extract(locator: Locator, attribute: str) -> Optional[str]:
+async def safe_attribute_extract(locator: Locator, attribute: str) -> Optional[str]:
     """Safely extract an attribute from a locator, returning None if not found."""
     try:
-        if locator.is_visible():
-            return locator.get_attribute(attribute)
+        if await locator.is_visible():
+            return await locator.get_attribute(attribute)
     except Exception:
         pass
     return None
 
 
-def extract_linkedin_url(element: Locator) -> Optional[str]:
+async def extract_linkedin_url(element: Locator) -> Optional[str]:
     """Extract LinkedIn URL from an element, typically from href attribute."""
     try:
         # Look for direct href
-        href = safe_attribute_extract(element, "href")
+        href = await safe_attribute_extract(element, "href")
         if href:
             return href
 
         # Look for href in child elements
         child_with_href = element.locator("a, [href]").first
-        if child_with_href.is_visible():
-            return safe_attribute_extract(child_with_href, "href")
+        if await child_with_href.is_visible():
+            return await safe_attribute_extract(child_with_href, "href")
 
     except Exception:
         pass

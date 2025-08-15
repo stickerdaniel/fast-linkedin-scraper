@@ -1,6 +1,6 @@
 """Configuration settings for the LinkedIn scraper."""
 
-from playwright.sync_api import ViewportSize
+from playwright.async_api import ViewportSize
 
 
 class BrowserConfig:
