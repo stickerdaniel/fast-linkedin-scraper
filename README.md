@@ -15,12 +15,16 @@ This library provides a high-level API for extracting LinkedIn profile data incl
 ## Quick Start
 
 ```python
+import asyncio
 from fast_linkedin_scraper import LinkedInSession
 
-# Using cookie authentication
-with LinkedInSession.from_cookie(li_at_cookie) as session:
-    person = session.get_profile("https://www.linkedin.com/in/stickerdaniel/")
-    print(json.dumps(person.model_dump(), indent=2, default=str))
+async def main():
+    # Using cookie authentication
+    async with LinkedInSession.from_cookie(li_at_cookie) as session:
+        person = await session.get_profile("https://www.linkedin.com/in/stickerdaniel/")
+        print(json.dumps(person.model_dump(), indent=2, default=str))
+
+asyncio.run(main())
 ```
 **Output**
 ```json

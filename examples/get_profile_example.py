@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Example: Profile scraping with cookie authentication"""
 
+import asyncio
 import json
 import os
 
@@ -22,9 +23,16 @@ PROFILE_URL: str = "https://www.linkedin.com/in/stickerdaniel/"
 output_dir = "output"
 os.makedirs(output_dir, exist_ok=True)
 
-with LinkedInSession.from_cookie(cookie, headless=False) as session:
-    # Scrape the profile
-    person: Person = session.get_profile(PROFILE_URL)
 
-    # Print the person object as pretty JSON
-    print(json.dumps(person.model_dump(), indent=2, default=str))
+async def main():
+    assert cookie is not None  # Type narrowing for type checker
+    async with LinkedInSession.from_cookie(cookie, headless=False) as session:
+        # Scrape the profile
+        person: Person = await session.get_profile(PROFILE_URL)
+
+        # Print the person object as pretty JSON
+        print(json.dumps(person.model_dump(), indent=2, default=str))
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

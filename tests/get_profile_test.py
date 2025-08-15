@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Example: Profile scraping with cookie authentication"""
 
+import asyncio
 import json
 import os
 
@@ -23,35 +24,44 @@ USERNAMES = [
 # Create output directory
 output_dir = "output"
 
-with LinkedInSession.from_cookie(cookie, headless=False) as session:
-    # Scrape both profiles
-    for username in USERNAMES:
-        profile_url = f"https://www.linkedin.com/in/{username}/"
-        person: Person = session.get_profile(profile_url)
 
-        # Print the person object as pretty JSON
-        # print(json.dumps(person.model_dump(), indent=2, default=str))
+async def main():
+    assert cookie is not None  # Type narrowing for type checker
+    async with LinkedInSession.from_cookie(cookie, headless=False) as session:
+        # Scrape both profiles
+        for username in USERNAMES:
+            profile_url = f"https://www.linkedin.com/in/{username}/"
+            person: Person = await session.get_profile(profile_url)
 
-        # Save the person object to a JSON file with auto-incrementing filename
-        # Extract username from URL (e.g., "anistji" from "https://www.linkedin.com/in/anistji/")
-        username = profile_url.split("/in/")[1].rstrip("/")
-        base_filename = username
-        extension = ".json"
+            # Print the person object as pretty JSON
+            # print(json.dumps(person.model_dump(), indent=2, default=str))
 
-        # Ensure tests/output directory exists
-        tests_output_dir = os.path.join("tests", output_dir)
-        os.makedirs(tests_output_dir, exist_ok=True)
+            # Save the person object to a JSON file with auto-incrementing filename
+            # Extract username from URL (e.g., "anistji" from "https://www.linkedin.com/in/anistji/")
+            username = profile_url.split("/in/")[1].rstrip("/")
+            base_filename = username
+            extension = ".json"
 
-        filename = os.path.join(tests_output_dir, f"{base_filename}{extension}")
+            # Ensure tests/output directory exists
+            tests_output_dir = os.path.join("tests", output_dir)
+            os.makedirs(tests_output_dir, exist_ok=True)
 
-        counter = 1
-        while os.path.exists(filename):
-            filename = os.path.join(
-                tests_output_dir, f"{base_filename}_{counter}{extension}"
-            )
-            counter += 1
+            filename = os.path.join(tests_output_dir, f"{base_filename}{extension}")
 
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(person.model_dump(), f, indent=2, default=str, ensure_ascii=False)
+            counter = 1
+            while os.path.exists(filename):
+                filename = os.path.join(
+                    tests_output_dir, f"{base_filename}_{counter}{extension}"
+                )
+                counter += 1
 
-        print(f"Profile saved to: {filename}")
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(
+                    person.model_dump(), f, indent=2, default=str, ensure_ascii=False
+                )
+
+            print(f"Profile saved to: {filename}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

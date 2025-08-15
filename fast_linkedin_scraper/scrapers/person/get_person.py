@@ -1,6 +1,6 @@
 """Main person profile scraper using Playwright."""
 
-from playwright.sync_api import Page
+from playwright.async_api import Page
 from pydantic import HttpUrl
 
 from ...models.person import Person
@@ -22,7 +22,7 @@ class PersonScraper:
         """
         self.page = page
 
-    def scrape_profile(self, url: str) -> Person:
+    async def scrape_profile(self, url: str) -> Person:
         """Scrape a LinkedIn person profile.
 
         Args:
@@ -35,10 +35,10 @@ class PersonScraper:
         linkedin_url = HttpUrl(url)
 
         # Navigate to profile
-        self.page.goto(str(linkedin_url))
+        await self.page.goto(str(linkedin_url))
 
         # Wait for initial content to load
-        self.page.wait_for_timeout(2000)  # 2 seconds
+        await self.page.wait_for_timeout(2000)  # 2 seconds
 
         # Initialize Person model
         person = Person(linkedin_url=linkedin_url)
@@ -46,39 +46,39 @@ class PersonScraper:
         # Authentication is already handled by the session that passed us the page
 
         # Scrape basic information
-        self._scrape_basic_info(person)
-        self.page.wait_for_timeout(1000)  # 1 second between sections
+        await self._scrape_basic_info(person)
+        await self.page.wait_for_timeout(1000)  # 1 second between sections
 
         # Scrape experiences
-        scrape_experiences(self.page, person)
-        self.page.wait_for_timeout(1000)  # 1 second between sections
+        await scrape_experiences(self.page, person)
+        await self.page.wait_for_timeout(1000)  # 1 second between sections
 
         # Scrape educations
-        scrape_educations(self.page, person)
-        self.page.wait_for_timeout(1000)  # 1 second between sections
+        await scrape_educations(self.page, person)
+        await self.page.wait_for_timeout(1000)  # 1 second between sections
 
         # Scrape interests
-        scrape_interests(self.page, person)
-        self.page.wait_for_timeout(1000)  # 1 second between sections
+        await scrape_interests(self.page, person)
+        await self.page.wait_for_timeout(1000)  # 1 second between sections
 
         # Scrape accomplishments
-        scrape_accomplishments(self.page, person)
-        self.page.wait_for_timeout(1000)  # 1 second between sections
+        await scrape_accomplishments(self.page, person)
+        await self.page.wait_for_timeout(1000)  # 1 second between sections
 
         # Scrape contacts
-        scrape_contacts(self.page, person)
-        self.page.wait_for_timeout(1000)  # 1 second between sections
+        await scrape_contacts(self.page, person)
+        await self.page.wait_for_timeout(1000)  # 1 second between sections
 
         return person
 
-    def _scrape_basic_info(self, person: Person) -> None:
+    async def _scrape_basic_info(self, person: Person) -> None:
         """Scrape basic profile information (name, location, about)."""
         # Get name and location
         try:
             top_panel = self.page.locator(".mt2.relative").first
             name_element = top_panel.locator("h1").first
-            if name_element.is_visible():
-                person.name = name_element.inner_text()
+            if await name_element.is_visible():
+                person.name = await name_element.inner_text()
         except Exception:
             pass
 
@@ -86,8 +86,8 @@ class PersonScraper:
             location_element = self.page.locator(
                 ".text-body-small.inline.t-black--light.break-words"
             ).first
-            if location_element.is_visible():
-                person.add_location(location_element.inner_text())
+            if await location_element.is_visible():
+                person.add_location(await location_element.inner_text())
         except Exception:
             pass
 
@@ -108,8 +108,8 @@ class PersonScraper:
 
             for selector in headline_selectors:
                 headline_element = self.page.locator(selector).first
-                if headline_element.is_visible():
-                    headline_text = headline_element.inner_text().strip()
+                if await headline_element.is_visible():
+                    headline_text = (await headline_element.inner_text()).strip()
                     # Make sure it's not the name and has substantial content
                     if (
                         headline_text
@@ -127,8 +127,8 @@ class PersonScraper:
             about = (
                 self.page.locator("#about").locator("..").locator(".display-flex").first
             )
-            if about.is_visible():
-                about_text = about.inner_text()
+            if await about.is_visible():
+                about_text = await about.inner_text()
                 person.add_about(about_text)
         except Exception:
             pass
@@ -138,8 +138,8 @@ class PersonScraper:
             profile_picture = self.page.locator(
                 ".pv-top-card-profile-picture img"
             ).first
-            if profile_picture.is_visible():
-                title_attr = profile_picture.get_attribute("title")
+            if await profile_picture.is_visible():
+                title_attr = await profile_picture.get_attribute("title")
                 person.open_to_work = title_attr and "#OPEN_TO_WORK" in title_attr
         except Exception:
             person.open_to_work = False

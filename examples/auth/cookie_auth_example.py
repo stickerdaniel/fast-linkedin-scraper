@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Example: Cookie authentication"""
 
+import asyncio
 import os
 
 from dotenv import load_dotenv
@@ -13,13 +14,20 @@ load_dotenv()
 cookie = os.getenv("LI_AT_COOKIE")
 assert cookie is not None
 
-auth = CookieAuth(cookie)
 
-with LinkedInSession(auth=auth, headless=False) as session:
-    print("✅ Logged in successfully!")
-    input("Press Enter to close...")
+async def main():
+    assert cookie is not None  # Type narrowing for type checker
+    auth = CookieAuth(cookie)
 
-# Alternative: Convenience method
-# with LinkedInSession.from_cookie(cookie, headless=True) as session:
-#     print("✅ Logged in successfully!")
-#     input("Press Enter to close...")
+    async with LinkedInSession(auth=auth, headless=False) as _:
+        print("✅ Logged in successfully!")
+        input("Press Enter to close...")
+
+    # Alternative: Convenience method
+    # async with LinkedInSession.from_cookie(cookie, headless=True) as session:
+    #     print("✅ Logged in successfully!")
+    #     input("Press Enter to close...")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

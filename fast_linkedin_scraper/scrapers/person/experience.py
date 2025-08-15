@@ -3,7 +3,7 @@
 import os
 from typing import List, Optional
 
-from playwright.sync_api import Page, Locator
+from playwright.async_api import Page, Locator
 from pydantic import HttpUrl
 
 from ...models.person import Person, Experience
@@ -18,7 +18,7 @@ from .utils import (
 )
 
 
-def scrape_experiences(page: Page, person: Person) -> None:
+async def scrape_experiences(page: Page, person: Person) -> None:
     """Scrape experience information from LinkedIn profile.
 
     Args:
@@ -27,25 +27,25 @@ def scrape_experiences(page: Page, person: Person) -> None:
     """
     # Navigate to experience details page
     experience_url = os.path.join(str(person.linkedin_url), "details/experience")
-    page.goto(experience_url)
+    await page.goto(experience_url)
 
     # Wait for page to load
-    page.wait_for_timeout(2000)  # 2 seconds
+    await page.wait_for_timeout(2000)  # 2 seconds
 
     # Scroll to ensure all content is loaded
-    scroll_to_half(page)
-    page.wait_for_timeout(1000)  # 1 second
-    scroll_to_bottom(page)
-    page.wait_for_timeout(2000)  # 2 seconds for content to load
+    await scroll_to_half(page)
+    await page.wait_for_timeout(1000)  # 1 second
+    await scroll_to_bottom(page)
+    await page.wait_for_timeout(2000)  # 2 seconds for content to load
 
     # Find the main experiences container
     try:
         main_list = page.locator("main .pvs-list__container").first
-        if not main_list.is_visible():
+        if not await main_list.is_visible():
             return
 
         # Get all experience items
-        experience_items = main_list.locator(".pvs-list__paged-list-item").all()
+        experience_items = await main_list.locator(".pvs-list__paged-list-item").all()
 
         for position_elem in experience_items:
             try:
@@ -53,11 +53,11 @@ def scrape_experiences(page: Page, person: Person) -> None:
                 position_container = position_elem.locator(
                     "div[data-view-name='profile-component-entity']"
                 ).first
-                if not position_container.is_visible():
+                if not await position_container.is_visible():
                     continue
 
                 # Get main elements - logo and details
-                elements = position_container.locator("> *").all()
+                elements = await position_container.locator("> *").all()
                 if len(elements) < 2:
                     continue
 
@@ -70,7 +70,7 @@ def scrape_experiences(page: Page, person: Person) -> None:
                     continue
 
                 # Extract position details
-                position_details_list = position_details.locator("> *").all()
+                position_details_list = await position_details.locator("> *").all()
                 position_summary_details = (
                     position_details_list[0] if len(position_details_list) > 0 else None
                 )
@@ -83,19 +83,21 @@ def scrape_experiences(page: Page, person: Person) -> None:
 
                 # Extract outer position information
                 outer_positions = (
-                    position_summary_details.locator("> *").locator("> *").all()
+                    await position_summary_details.locator("> *").locator("> *").all()
                 )
 
                 # Parse position information based on number of elements
-                position_info = _parse_position_info(outer_positions)
+                position_info = await _parse_position_info(outer_positions)
 
                 # Check if there are multiple positions within this company
-                inner_positions = _extract_inner_positions(position_summary_text)
+                inner_positions = await _extract_inner_positions(position_summary_text)
 
                 if len(inner_positions) > 1:
                     # Handle multiple positions at same company
                     for inner_position in inner_positions:
-                        experience_data = _extract_inner_position_data(inner_position)
+                        experience_data = await _extract_inner_position_data(
+                            inner_position
+                        )
                         if experience_data:
                             experience = Experience(
                                 position_title=experience_data.get(
@@ -116,7 +118,10 @@ def scrape_experiences(page: Page, person: Person) -> None:
                             person.add_experience(experience)
                 else:
                     # Single position
-                    description, skills = extract_description_and_skills_from_element(
+                    (
+                        description,
+                        skills,
+                    ) = await extract_description_and_skills_from_element(
                         position_summary_text
                     )
 
@@ -145,19 +150,19 @@ def scrape_experiences(page: Page, person: Person) -> None:
         pass
 
 
-def _extract_company_url(company_logo_elem: Locator) -> Optional[str]:
+async def _extract_company_url(company_logo_elem: Locator) -> Optional[str]:
     """Extract company LinkedIn URL from logo element."""
     try:
         link_elem = company_logo_elem.locator("> *").first
-        if link_elem.is_visible():
-            href = link_elem.get_attribute("href")
+        if await link_elem.is_visible():
+            href = await link_elem.get_attribute("href")
             return href if href else None
     except Exception:
         pass
     return None
 
 
-def _parse_position_info(outer_positions: List[Locator]) -> dict:
+async def _parse_position_info(outer_positions: List[Locator]) -> dict:
     """Parse position information from outer position elements - following Selenium approach."""
     position_info = {
         "position_title": "",
@@ -173,9 +178,9 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
     try:
         # Follow Selenium logic exactly but with improved field classification
         if len(outer_positions) == 4:
-            title_text = outer_positions[0].locator("span").first.inner_text()
+            title_text = await outer_positions[0].locator("span").first.inner_text()
             position_info["position_title"] = clean_single_string_duplicates(title_text)
-            company_text = outer_positions[1].locator("span").first.inner_text()
+            company_text = await outer_positions[1].locator("span").first.inner_text()
             # Check if company text contains employment type after dot separator
             if "·" in company_text:
                 company_parts = company_text.split("·")
@@ -190,11 +195,13 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
             else:
                 position_info["company"] = company_text
             position_info["work_times"] = (
-                outer_positions[2].locator("span").first.inner_text()
+                await outer_positions[2].locator("span").first.inner_text()
             )
 
             # Smart classification for the 4th element (could be location or employment type)
-            fourth_element_text = outer_positions[3].locator("span").first.inner_text()
+            fourth_element_text = (
+                await outer_positions[3].locator("span").first.inner_text()
+            )
             if is_employment_type(fourth_element_text):
                 # Only update if we don't already have an employment type from company text
                 if not position_info["employment_type"]:
@@ -211,8 +218,8 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                 # Don't clear employment_type if already set from company text
         elif len(outer_positions) == 3:
             # Check if second or third element contains work times (has ·, - and year patterns)
-            second_element_text = outer_positions[1].inner_text()
-            third_element_text = outer_positions[2].inner_text()
+            second_element_text = await outer_positions[1].inner_text()
+            third_element_text = await outer_positions[2].inner_text()
 
             # Check for date patterns using regex (more accurate than string checks)
             # Experience dates have format like "Oct 2024 - Apr 2025 · 7 mos"
@@ -226,7 +233,9 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
             if is_second_dates:
                 # Pattern: company, work_times, location/employment_type
                 position_info["position_title"] = ""
-                company_text = outer_positions[0].locator("span").first.inner_text()
+                company_text = (
+                    await outer_positions[0].locator("span").first.inner_text()
+                )
                 # Check if company text contains employment type after dot separator
                 if "·" in company_text:
                     company_parts = company_text.split("·")
@@ -241,12 +250,12 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                 else:
                     position_info["company"] = company_text
                 position_info["work_times"] = (
-                    outer_positions[1].locator("span").first.inner_text()
+                    await outer_positions[1].locator("span").first.inner_text()
                 )
 
                 # Smart classification for the 3rd element
                 third_element_text = (
-                    outer_positions[2].locator("span").first.inner_text()
+                    await outer_positions[2].locator("span").first.inner_text()
                 )
                 if is_employment_type(third_element_text):
                     # Only update if we don't already have an employment type from company text
@@ -264,11 +273,13 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                     # Don't clear employment_type if already set from company text
             elif is_third_dates:
                 # Pattern: position_title, company, work_times
-                title_text = outer_positions[0].locator("span").first.inner_text()
+                title_text = await outer_positions[0].locator("span").first.inner_text()
                 position_info["position_title"] = clean_single_string_duplicates(
                     title_text
                 )
-                company_text = outer_positions[1].locator("span").first.inner_text()
+                company_text = (
+                    await outer_positions[1].locator("span").first.inner_text()
+                )
                 # Check if company text contains employment type after dot separator
                 if "·" in company_text:
                     company_parts = company_text.split("·")
@@ -283,14 +294,16 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                 else:
                     position_info["company"] = company_text
                 position_info["work_times"] = (
-                    outer_positions[2].locator("span").first.inner_text()
+                    await outer_positions[2].locator("span").first.inner_text()
                 )
                 position_info["location"] = ""
                 # Don't clear employment_type if already set from company text
             else:
                 # Fallback: assume no dates, treat as company, unknown, location/employment_type
                 position_info["position_title"] = ""
-                company_text = outer_positions[0].locator("span").first.inner_text()
+                company_text = (
+                    await outer_positions[0].locator("span").first.inner_text()
+                )
                 # Check if company text contains employment type after dot separator
                 if "·" in company_text:
                     company_parts = company_text.split("·")
@@ -308,7 +321,7 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
 
                 # Smart classification for the 3rd element
                 third_element_text = (
-                    outer_positions[2].locator("span").first.inner_text()
+                    await outer_positions[2].locator("span").first.inner_text()
                 )
                 if is_employment_type(third_element_text):
                     # Only update if we don't already have an employment type from company text
@@ -328,7 +341,9 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
             # Default case
             position_info["position_title"] = ""
             if len(outer_positions) > 0:
-                company_text = outer_positions[0].locator("span").first.inner_text()
+                company_text = (
+                    await outer_positions[0].locator("span").first.inner_text()
+                )
                 # Check if company text contains employment type after dot separator
                 if "·" in company_text:
                     company_parts = company_text.split("·")
@@ -344,7 +359,7 @@ def _parse_position_info(outer_positions: List[Locator]) -> dict:
                     position_info["company"] = company_text
             if len(outer_positions) > 1:
                 position_info["work_times"] = (
-                    outer_positions[1].locator("span").first.inner_text()
+                    await outer_positions[1].locator("span").first.inner_text()
                 )
             position_info["location"] = ""
             # Don't clear employment_type if already set from company text
@@ -431,7 +446,7 @@ def _parse_work_times(work_times: str) -> dict:
         }
 
 
-def _extract_clean_description(element: Optional[Locator]) -> str:
+async def _extract_clean_description(element: Optional[Locator]) -> str:
     """Extract clean description text from nested list structure.
 
     Args:
@@ -440,11 +455,13 @@ def _extract_clean_description(element: Optional[Locator]) -> str:
     Returns:
         Clean description text without skills or metadata
     """
-    description, _ = extract_description_and_skills_from_element(element)
+    description, _ = await extract_description_and_skills_from_element(element)
     return description
 
 
-def _extract_inner_positions(position_summary_text: Optional[Locator]) -> List[Locator]:
+async def _extract_inner_positions(
+    position_summary_text: Optional[Locator],
+) -> List[Locator]:
     """Extract inner positions if multiple roles at same company."""
     inner_positions = []
 
@@ -453,10 +470,14 @@ def _extract_inner_positions(position_summary_text: Optional[Locator]) -> List[L
 
     try:
         # Check if there's a nested list container
-        pvs_containers = position_summary_text.locator(".pvs-list__container").all()
+        pvs_containers = await position_summary_text.locator(
+            ".pvs-list__container"
+        ).all()
         if pvs_containers:
             for container in pvs_containers:
-                nested_items = container.locator(".pvs-list__paged-list-item").all()
+                nested_items = await container.locator(
+                    ".pvs-list__paged-list-item"
+                ).all()
                 inner_positions.extend(nested_items)
     except Exception:
         pass
@@ -464,14 +485,14 @@ def _extract_inner_positions(position_summary_text: Optional[Locator]) -> List[L
     return inner_positions
 
 
-def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
+async def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
     """Extract data from inner position element."""
     try:
         link_elem = inner_position.locator("a").first
-        if not link_elem.is_visible():
+        if not await link_elem.is_visible():
             return None
 
-        elements = link_elem.locator("> *").all()
+        elements = await link_elem.locator("> *").all()
         if len(elements) < 2:
             return None
 
@@ -485,8 +506,8 @@ def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
         # Check elements[1] and elements[2] for date patterns, employment types, and locations
         for i in range(1, len(elements)):
             elem_text = (
-                elements[i].locator("*").first.inner_text()
-                if elements[i].is_visible()
+                await elements[i].locator("*").first.inner_text()
+                if await elements[i].is_visible()
                 else ""
             )
 
@@ -513,8 +534,8 @@ def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
                     location = elem_text
 
         title_text = (
-            position_title_elem.locator("*").first.inner_text()
-            if position_title_elem.is_visible()
+            await position_title_elem.locator("*").first.inner_text()
+            if await position_title_elem.is_visible()
             else ""
         )
         position_title = clean_single_string_duplicates(title_text)
@@ -523,7 +544,7 @@ def _extract_inner_position_data(inner_position: Locator) -> Optional[dict]:
         times_info = _parse_work_times(work_times)
 
         # Extract description and skills from the inner position structure
-        description, skills = extract_description_and_skills_from_element(
+        description, skills = await extract_description_and_skills_from_element(
             inner_position
         )
 

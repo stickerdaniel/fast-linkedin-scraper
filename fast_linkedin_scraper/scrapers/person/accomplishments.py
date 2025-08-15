@@ -3,14 +3,14 @@
 import os
 from typing import Optional
 
-from playwright.sync_api import Page, Locator
+from playwright.async_api import Page, Locator
 from pydantic import HttpUrl
 
 from ...models.person import Person, Honor, Language
 from ..utils import scroll_to_bottom
 
 
-def scrape_accomplishments(page: Page, person: Person) -> None:
+async def scrape_accomplishments(page: Page, person: Person) -> None:
     """Scrape accomplishments information from LinkedIn profile.
 
     This includes honors/awards, languages, and potentially other accomplishment types.
@@ -20,31 +20,31 @@ def scrape_accomplishments(page: Page, person: Person) -> None:
         person: Person model to populate with accomplishments
     """
     # First try to scrape from main profile page (some accomplishments are shown there)
-    _scrape_main_profile_accomplishments(page, person)
+    await _scrape_main_profile_accomplishments(page, person)
 
     # Then try detail pages for more complete information
-    _scrape_honors_details(page, person)
-    _scrape_languages_details(page, person)
+    await _scrape_honors_details(page, person)
+    await _scrape_languages_details(page, person)
 
 
-def _scrape_main_profile_accomplishments(page: Page, person: Person) -> None:
+async def _scrape_main_profile_accomplishments(page: Page, person: Person) -> None:
     """Scrape accomplishments visible on the main profile page."""
     try:
         # Navigate back to main profile if needed
-        page.goto(str(person.linkedin_url))
-        page.wait_for_timeout(2000)
+        await page.goto(str(person.linkedin_url))
+        await page.wait_for_timeout(2000)
 
         # Scroll to load all sections
-        scroll_to_bottom(page)
-        page.wait_for_timeout(2000)
+        await scroll_to_bottom(page)
+        await page.wait_for_timeout(2000)
 
         # Look for honors & awards section
         try:
             honors_section = page.locator("section:has-text('Honors & awards')").first
-            if honors_section.is_visible():
-                items = honors_section.locator("li").all()
+            if await honors_section.is_visible():
+                items = await honors_section.locator("li").all()
                 for item in items[:10]:  # Limit to first 10 to avoid too many
-                    honor = _extract_honor_from_main_profile(item)
+                    honor = await _extract_honor_from_main_profile(item)
                     if honor:
                         person.add_honor(honor)
         except Exception:
@@ -53,10 +53,10 @@ def _scrape_main_profile_accomplishments(page: Page, person: Person) -> None:
         # Look for languages section
         try:
             languages_section = page.locator("section:has-text('Languages')").first
-            if languages_section.is_visible():
-                items = languages_section.locator("li").all()
+            if await languages_section.is_visible():
+                items = await languages_section.locator("li").all()
                 for item in items[:10]:  # Limit to first 10
-                    language = _extract_language_from_main_profile(item)
+                    language = await _extract_language_from_main_profile(item)
                     if language:
                         # Check if not already added (to avoid duplicates)
                         if not any(
@@ -70,29 +70,29 @@ def _scrape_main_profile_accomplishments(page: Page, person: Person) -> None:
         pass
 
 
-def _scrape_honors_details(page: Page, person: Person) -> None:
+async def _scrape_honors_details(page: Page, person: Person) -> None:
     """Scrape honors/awards from the details page."""
     try:
         honors_url = os.path.join(str(person.linkedin_url), "details/honors")
-        page.goto(honors_url)
-        page.wait_for_timeout(2000)
+        await page.goto(honors_url)
+        await page.wait_for_timeout(2000)
 
         # Check if page exists
-        if "Page not found" in page.content() or "/404/" in page.url:
+        if "Page not found" in await page.content() or "/404/" in page.url:
             return
 
         main_content = page.locator("main").first
-        if not main_content.is_visible():
+        if not await main_content.is_visible():
             return
 
         # Get all list containers
-        list_containers = main_content.locator(".pvs-list__container").all()
+        list_containers = await main_content.locator(".pvs-list__container").all()
 
         for list_container in list_containers:
-            items = list_container.locator(".pvs-list__paged-list-item").all()
+            items = await list_container.locator(".pvs-list__paged-list-item").all()
 
             for item in items[:20]:  # Limit to prevent too many
-                honor = _extract_honor_from_details(item)
+                honor = await _extract_honor_from_details(item)
                 if honor:
                     # Check if not already added from main profile
                     if not any(h.title == honor.title for h in person.honors):
@@ -102,29 +102,29 @@ def _scrape_honors_details(page: Page, person: Person) -> None:
         pass
 
 
-def _scrape_languages_details(page: Page, person: Person) -> None:
+async def _scrape_languages_details(page: Page, person: Person) -> None:
     """Scrape languages from the details page."""
     try:
         languages_url = os.path.join(str(person.linkedin_url), "details/languages")
-        page.goto(languages_url)
-        page.wait_for_timeout(2000)
+        await page.goto(languages_url)
+        await page.wait_for_timeout(2000)
 
         # Check if page exists
-        if "Page not found" in page.content() or "/404/" in page.url:
+        if "Page not found" in await page.content() or "/404/" in page.url:
             return
 
         main_content = page.locator("main").first
-        if not main_content.is_visible():
+        if not await main_content.is_visible():
             return
 
         # Get all list containers
-        list_containers = main_content.locator(".pvs-list__container").all()
+        list_containers = await main_content.locator(".pvs-list__container").all()
 
         for list_container in list_containers:
-            items = list_container.locator(".pvs-list__paged-list-item").all()
+            items = await list_container.locator(".pvs-list__paged-list-item").all()
 
             for item in items[:20]:  # Limit to prevent too many
-                language = _extract_language_from_details(item)
+                language = await _extract_language_from_details(item)
                 if language:
                     # Check if not already added from main profile
                     if not any(lang.name == language.name for lang in person.languages):
@@ -134,12 +134,12 @@ def _scrape_languages_details(page: Page, person: Person) -> None:
         pass
 
 
-def _extract_honor_from_main_profile(item: Locator) -> Optional[Honor]:
+async def _extract_honor_from_main_profile(item: Locator) -> Optional[Honor]:
     """Extract honor/award from main profile list item."""
     try:
         # Get title
         title_elem = item.locator("div[aria-hidden='true'] span").first
-        title = title_elem.inner_text() if title_elem.is_visible() else ""
+        title = await title_elem.inner_text() if await title_elem.is_visible() else ""
 
         if not title:
             return None
@@ -148,8 +148,8 @@ def _extract_honor_from_main_profile(item: Locator) -> Optional[Honor]:
         issuer = ""
         date = ""
         issuer_elem = item.locator("span:has-text('Issued by')").first
-        if issuer_elem.is_visible():
-            issuer_text = issuer_elem.inner_text()
+        if await issuer_elem.is_visible():
+            issuer_text = await issuer_elem.inner_text()
             # Parse out institution name from "Issued by X · Date"
             if "Issued by" in issuer_text:
                 parts = issuer_text.replace("Issued by", "").split("·")
@@ -168,15 +168,15 @@ def _extract_honor_from_main_profile(item: Locator) -> Optional[Honor]:
         return None
 
 
-def _extract_honor_from_details(item: Locator) -> Optional[Honor]:
+async def _extract_honor_from_details(item: Locator) -> Optional[Honor]:
     """Extract honor/award from details page list item."""
     try:
         container = item.locator("div[data-view-name='profile-component-entity']").first
-        if not container.is_visible():
+        if not await container.is_visible():
             return None
 
         # Get the details section (usually second div)
-        parts = container.locator("> div").all()
+        parts = await container.locator("> div").all()
         if len(parts) < 2:
             return None
 
@@ -184,7 +184,7 @@ def _extract_honor_from_details(item: Locator) -> Optional[Honor]:
 
         # Get title
         title_elem = details.locator("span[aria-hidden='true']").first
-        title = title_elem.inner_text() if title_elem.is_visible() else ""
+        title = await title_elem.inner_text() if await title_elem.is_visible() else ""
 
         if not title:
             return None
@@ -196,8 +196,8 @@ def _extract_honor_from_details(item: Locator) -> Optional[Honor]:
 
         # Try "Issued by" first
         issuer_elem = details.locator("span:has-text('Issued by')").first
-        if issuer_elem.is_visible():
-            issuer_text = issuer_elem.inner_text()
+        if await issuer_elem.is_visible():
+            issuer_text = await issuer_elem.inner_text()
             if "Issued by" in issuer_text:
                 parts = issuer_text.replace("Issued by", "").split("·")
                 if parts:
@@ -207,18 +207,18 @@ def _extract_honor_from_details(item: Locator) -> Optional[Honor]:
 
         # Try "Associated with"
         assoc_elem = details.locator("span:has-text('Associated with')").first
-        if assoc_elem.is_visible():
-            assoc_text = assoc_elem.inner_text()
+        if await assoc_elem.is_visible():
+            assoc_text = await assoc_elem.inner_text()
             if "Associated with" in assoc_text:
                 associated_with = assoc_text.replace("Associated with", "").strip()
 
         # Try to get document URL
         document_url = None
         try:
-            links = container.locator("a").all()
+            links = await container.locator("a").all()
             for link in links:
-                if link.is_visible():
-                    href = link.get_attribute("href")
+                if await link.is_visible():
+                    href = await link.get_attribute("href")
                     if href:
                         # Check for document/media links
                         if "single-media-viewer" in href or "type=DOCUMENT" in href:
@@ -240,10 +240,10 @@ def _extract_honor_from_details(item: Locator) -> Optional[Honor]:
         return None
 
 
-def _extract_language_from_main_profile(item: Locator) -> Optional[Language]:
+async def _extract_language_from_main_profile(item: Locator) -> Optional[Language]:
     """Extract language from main profile list item."""
     try:
-        text = item.inner_text()
+        text = await item.inner_text()
         if not text:
             return None
 
@@ -270,12 +270,12 @@ def _extract_language_from_main_profile(item: Locator) -> Optional[Language]:
         return None
 
 
-def _extract_language_from_details(item: Locator) -> Optional[Language]:
+async def _extract_language_from_details(item: Locator) -> Optional[Language]:
     """Extract language from details page list item."""
     try:
         # Get language name
         name_elem = item.locator("span[aria-hidden='true']").first
-        language = name_elem.inner_text() if name_elem.is_visible() else ""
+        language = await name_elem.inner_text() if await name_elem.is_visible() else ""
 
         if not language:
             return None
@@ -283,8 +283,8 @@ def _extract_language_from_details(item: Locator) -> Optional[Language]:
         # Get proficiency level
         proficiency = ""
         prof_elem = item.locator("span.t-14").first
-        if prof_elem.is_visible():
-            prof_text = prof_elem.inner_text()
+        if await prof_elem.is_visible():
+            prof_text = await prof_elem.inner_text()
             # Clean up duplicate text that sometimes appears
             lines = prof_text.split("\n")
             if lines:

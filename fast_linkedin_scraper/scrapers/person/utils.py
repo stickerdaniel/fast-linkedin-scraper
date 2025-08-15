@@ -3,7 +3,7 @@
 import re
 from typing import Optional
 
-from playwright.sync_api import Locator
+from playwright.async_api import Locator
 from rapidfuzz import fuzz
 
 
@@ -265,7 +265,7 @@ def extract_description_and_skills(text: str) -> tuple[str, list[str]]:
     return description, unique_skills
 
 
-def extract_description_and_skills_from_element(
+async def extract_description_and_skills_from_element(
     element: Optional[Locator],
 ) -> tuple[str, list[str]]:
     """Extract clean description and skills from DOM element with nested list structure.
@@ -280,7 +280,7 @@ def extract_description_and_skills_from_element(
     Returns:
         Tuple of (description_text, skills_list)
     """
-    if not element or not element.is_visible():
+    if not element or not await element.is_visible():
         return "", []
 
     description_lines = []
@@ -289,12 +289,14 @@ def extract_description_and_skills_from_element(
     try:
         # Navigate to nested list structure based on DOM analysis
         # Look for list containers and their items
-        lists = element.locator("list, ul, .pvs-list").all()
+        lists = await element.locator("list, ul, .pvs-list").all()
         if lists:
             for list_elem in lists:
-                list_items = list_elem.locator("listitem, li, .pvs-list__item").all()
+                list_items = await list_elem.locator(
+                    "listitem, li, .pvs-list__item"
+                ).all()
                 for item in list_items:
-                    text = item.inner_text().strip()
+                    text = (await item.inner_text()).strip()
                     if text:
                         # When building from multiple elements, clean each element's content first
                         cleaned_text = clean_single_string_duplicates(text)
@@ -331,7 +333,7 @@ def extract_description_and_skills_from_element(
                                     description_lines.append(line)
         else:
             # Fallback: extract text directly from element
-            text = element.inner_text().strip()
+            text = (await element.inner_text()).strip()
             if text:
                 # For single element, clean duplicates first then extract
                 cleaned_text = clean_single_string_duplicates(text)
@@ -340,7 +342,7 @@ def extract_description_and_skills_from_element(
     except Exception:
         # Fallback: try to extract text directly
         try:
-            text = element.inner_text().strip()
+            text = (await element.inner_text()).strip()
             if text:
                 # For single element, clean duplicates first then extract
                 cleaned_text = clean_single_string_duplicates(text)
