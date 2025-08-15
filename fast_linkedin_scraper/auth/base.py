@@ -81,6 +81,8 @@ class LinkedInAuth(ABC):
             True if logged in, False otherwise
         """
         try:
+            # Wait for page to be ready and get URL safely
+            await page.wait_for_load_state("domcontentloaded")
             current_url = page.url
 
             # Check if we're on a login page
