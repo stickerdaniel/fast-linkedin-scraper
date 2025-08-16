@@ -4,6 +4,7 @@ from playwright.async_api import Page
 
 from .auth import CookieAuth, LinkedInAuth, PasswordAuth
 from .browser import BrowserContextManager
+from .config import ScrapingFields
 from .models.person import Person
 
 
@@ -83,11 +84,14 @@ class LinkedInSession:
             )
         return self._page
 
-    async def get_profile(self, url: str) -> Person:
+    async def get_profile(
+        self, url: str, fields: ScrapingFields = ScrapingFields.MINIMAL
+    ) -> Person:
         """Get LinkedIn profile data.
 
         Args:
             url: LinkedIn profile URL
+            fields: ScrapingFields enum specifying which fields to scrape
 
         Returns:
             Person object with scraped profile data
@@ -99,7 +103,7 @@ class LinkedInSession:
 
         page: Page = self._ensure_authenticated()
         scraper: PersonScraper = PersonScraper(page)
-        return await scraper.scrape_profile(url)
+        return await scraper.scrape_profile(url, fields)
 
     async def get_company(self, url: str) -> dict:
         """Get LinkedIn company data.

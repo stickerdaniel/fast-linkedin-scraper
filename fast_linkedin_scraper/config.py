@@ -1,5 +1,6 @@
 """Configuration settings for the LinkedIn scraper."""
 
+from enum import Flag, auto
 from playwright.async_api import ViewportSize
 
 
@@ -23,3 +24,19 @@ class BrowserConfig:
         "--disable-backgrounding-occluded-windows",
         "--disable-renderer-backgrounding",
     ]
+
+
+class ScrapingFields(Flag):
+    """Fields that can be scraped from LinkedIn profiles."""
+
+    BASIC_INFO = auto()
+    EXPERIENCE = auto()
+    EDUCATION = auto()
+    INTERESTS = auto()
+    ACCOMPLISHMENTS = auto()
+    CONTACTS = auto()
+
+    # Presets
+    MINIMAL = BASIC_INFO
+    CAREER = BASIC_INFO | EXPERIENCE | EDUCATION
+    ALL = BASIC_INFO | EXPERIENCE | EDUCATION | INTERESTS | ACCOMPLISHMENTS | CONTACTS

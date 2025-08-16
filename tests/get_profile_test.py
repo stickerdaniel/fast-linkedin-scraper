@@ -7,7 +7,7 @@ import os
 
 from dotenv import load_dotenv
 
-from fast_linkedin_scraper import LinkedInSession
+from fast_linkedin_scraper import LinkedInSession, ScrapingFields
 from fast_linkedin_scraper.models import Person
 
 load_dotenv()
@@ -28,10 +28,12 @@ output_dir = "output"
 async def main():
     assert cookie is not None  # Type narrowing for type checker
     async with LinkedInSession.from_cookie(cookie, headless=False) as session:
-        # Scrape both profiles
+        # Scrape both profiles with all fields for comprehensive testing
         for username in USERNAMES:
             profile_url = f"https://www.linkedin.com/in/{username}/"
-            person: Person = await session.get_profile(profile_url)
+            person: Person = await session.get_profile(
+                profile_url, fields=ScrapingFields.ALL
+            )
 
             # Print the person object as pretty JSON
             # print(json.dumps(person.model_dump(), indent=2, default=str))

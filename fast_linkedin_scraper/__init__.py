@@ -3,6 +3,7 @@
 from .session import LinkedInSession
 from .auth import PasswordAuth, CookieAuth
 from .browser import BrowserContextManager
+from .config import ScrapingFields
 
 __version__ = "2.11.5"
 
@@ -11,4 +12,5 @@ __all__ = [
     "PasswordAuth",
     "CookieAuth",
     "BrowserContextManager",
+    "ScrapingFields",
 ]
