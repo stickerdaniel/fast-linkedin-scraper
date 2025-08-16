@@ -3,6 +3,7 @@
 from playwright.async_api import Page
 from pydantic import HttpUrl
 
+from ...config import PersonScrapingFields
 from ...models.person import Person
 from .accomplishments import scrape_accomplishments
 from .contacts import scrape_contacts
@@ -22,11 +23,14 @@ class PersonScraper:
         """
         self.page = page
 
-    async def scrape_profile(self, url: str) -> Person:
+    async def scrape_profile(
+        self, url: str, fields: PersonScrapingFields = PersonScrapingFields.MINIMAL
+    ) -> Person:
         """Scrape a LinkedIn person profile.
 
         Args:
             url: LinkedIn profile URL as string
+            fields: PersonScrapingFields enum specifying which fields to scrape
 
         Returns:
             Person model with scraped data
@@ -45,29 +49,49 @@ class PersonScraper:
 
         # Authentication is already handled by the session that passed us the page
 
-        # Scrape basic information
-        await self._scrape_basic_info(person)
-        await self.page.wait_for_timeout(1000)  # 1 second between sections
+        # Always scrape basic information (it's on the main page)
+        if PersonScrapingFields.BASIC_INFO in fields:
+            try:
+                await self._scrape_basic_info(person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["basic_info"] = str(e)
 
-        # Scrape experiences
-        await scrape_experiences(self.page, person)
-        await self.page.wait_for_timeout(1000)  # 1 second between sections
+        # Conditionally scrape other fields with error isolation
+        if PersonScrapingFields.EXPERIENCE in fields:
+            try:
+                await scrape_experiences(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["experience"] = str(e)
 
-        # Scrape educations
-        await scrape_educations(self.page, person)
-        await self.page.wait_for_timeout(1000)  # 1 second between sections
+        if PersonScrapingFields.EDUCATION in fields:
+            try:
+                await scrape_educations(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["education"] = str(e)
 
-        # Scrape interests
-        await scrape_interests(self.page, person)
-        await self.page.wait_for_timeout(1000)  # 1 second between sections
+        if PersonScrapingFields.INTERESTS in fields:
+            try:
+                await scrape_interests(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["interests"] = str(e)
 
-        # Scrape accomplishments
-        await scrape_accomplishments(self.page, person)
-        await self.page.wait_for_timeout(1000)  # 1 second between sections
+        if PersonScrapingFields.ACCOMPLISHMENTS in fields:
+            try:
+                await scrape_accomplishments(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["accomplishments"] = str(e)
 
-        # Scrape contacts
-        await scrape_contacts(self.page, person)
-        await self.page.wait_for_timeout(1000)  # 1 second between sections
+        if PersonScrapingFields.CONTACTS in fields:
+            try:
+                await scrape_contacts(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["contacts"] = str(e)
 
         return person
 
