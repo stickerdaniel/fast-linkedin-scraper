@@ -3,7 +3,7 @@
 from playwright.async_api import Page
 from pydantic import HttpUrl
 
-from ...config import ScrapingFields
+from ...config import PersonScrapingFields
 from ...models.person import Person
 from .accomplishments import scrape_accomplishments
 from .contacts import scrape_contacts
@@ -24,13 +24,13 @@ class PersonScraper:
         self.page = page
 
     async def scrape_profile(
-        self, url: str, fields: ScrapingFields = ScrapingFields.MINIMAL
+        self, url: str, fields: PersonScrapingFields = PersonScrapingFields.MINIMAL
     ) -> Person:
         """Scrape a LinkedIn person profile.
 
         Args:
             url: LinkedIn profile URL as string
-            fields: ScrapingFields enum specifying which fields to scrape
+            fields: PersonScrapingFields enum specifying which fields to scrape
 
         Returns:
             Person model with scraped data
@@ -50,28 +50,28 @@ class PersonScraper:
         # Authentication is already handled by the session that passed us the page
 
         # Always scrape basic information (it's on the main page)
-        if ScrapingFields.BASIC_INFO in fields:
+        if PersonScrapingFields.BASIC_INFO in fields:
             await self._scrape_basic_info(person)
             await self.page.wait_for_timeout(1000)  # 1 second between sections
 
         # Conditionally scrape other fields
-        if ScrapingFields.EXPERIENCE in fields:
+        if PersonScrapingFields.EXPERIENCE in fields:
             await scrape_experiences(self.page, person)
             await self.page.wait_for_timeout(1000)  # 1 second between sections
 
-        if ScrapingFields.EDUCATION in fields:
+        if PersonScrapingFields.EDUCATION in fields:
             await scrape_educations(self.page, person)
             await self.page.wait_for_timeout(1000)  # 1 second between sections
 
-        if ScrapingFields.INTERESTS in fields:
+        if PersonScrapingFields.INTERESTS in fields:
             await scrape_interests(self.page, person)
             await self.page.wait_for_timeout(1000)  # 1 second between sections
 
-        if ScrapingFields.ACCOMPLISHMENTS in fields:
+        if PersonScrapingFields.ACCOMPLISHMENTS in fields:
             await scrape_accomplishments(self.page, person)
             await self.page.wait_for_timeout(1000)  # 1 second between sections
 
-        if ScrapingFields.CONTACTS in fields:
+        if PersonScrapingFields.CONTACTS in fields:
             await scrape_contacts(self.page, person)
             await self.page.wait_for_timeout(1000)  # 1 second between sections
 

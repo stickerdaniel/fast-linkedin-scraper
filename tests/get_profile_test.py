@@ -7,7 +7,7 @@ import os
 
 from dotenv import load_dotenv
 
-from fast_linkedin_scraper import LinkedInSession, ScrapingFields
+from fast_linkedin_scraper import LinkedInSession, PersonScrapingFields
 from fast_linkedin_scraper.models import Person
 
 load_dotenv()
@@ -32,7 +32,7 @@ async def main():
         for username in USERNAMES:
             profile_url = f"https://www.linkedin.com/in/{username}/"
             person: Person = await session.get_profile(
-                profile_url, fields=ScrapingFields.ALL
+                profile_url, fields=PersonScrapingFields.ALL
             )
 
             # Print the person object as pretty JSON

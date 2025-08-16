@@ -26,17 +26,29 @@ class BrowserConfig:
     ]
 
 
-class ScrapingFields(Flag):
-    """Fields that can be scraped from LinkedIn profiles."""
+class PersonScrapingFields(Flag):
+    """Fields that can be scraped from LinkedIn person profiles.
 
-    BASIC_INFO = auto()
-    EXPERIENCE = auto()
-    EDUCATION = auto()
-    INTERESTS = auto()
-    ACCOMPLISHMENTS = auto()
-    CONTACTS = auto()
+    Each field corresponds to specific profile sections and navigation requirements:
 
-    # Presets
-    MINIMAL = BASIC_INFO
-    CAREER = BASIC_INFO | EXPERIENCE | EDUCATION
-    ALL = BASIC_INFO | EXPERIENCE | EDUCATION | INTERESTS | ACCOMPLISHMENTS | CONTACTS
+    - BASIC_INFO: Name, headline, location, about (scraped from main page, ~2s)
+    - EXPERIENCE: Work history (navigates to /details/experience, ~5s)
+    - EDUCATION: Education history (navigates to /details/education, ~5s)
+    - INTERESTS: Following/interests (navigates to /details/interests, ~5s)
+    - ACCOMPLISHMENTS: Honors and languages (multiple navigations, ~6s)
+    - CONTACTS: Contact info and connections (modal + navigation, ~8s)
+    """
+
+    BASIC_INFO = auto()  # Name, headline, location, about
+    EXPERIENCE = auto()  # Work history and employment details
+    EDUCATION = auto()  # Educational background and degrees
+    INTERESTS = auto()  # Following companies/people and interests
+    ACCOMPLISHMENTS = auto()  # Honors, awards, and languages
+    CONTACTS = auto()  # Contact information and connections
+
+    # Presets for common use cases
+    MINIMAL = BASIC_INFO  # Fastest: basic info only (~2s)
+    CAREER = BASIC_INFO | EXPERIENCE | EDUCATION  # Career-focused (~12s)
+    ALL = (
+        BASIC_INFO | EXPERIENCE | EDUCATION | INTERESTS | ACCOMPLISHMENTS | CONTACTS
+    )  # Complete profile (~30s)

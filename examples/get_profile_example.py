@@ -7,7 +7,7 @@ import os
 
 from dotenv import load_dotenv
 
-from fast_linkedin_scraper import LinkedInSession, ScrapingFields
+from fast_linkedin_scraper import LinkedInSession, PersonScrapingFields
 from fast_linkedin_scraper.models import Person
 
 load_dotenv()
@@ -30,7 +30,7 @@ async def main():
         # Example 1: Minimal scraping (fastest - only basic info)
         print("=== Minimal scraping (basic info only) ===")
         person_minimal: Person = await session.get_profile(
-            PROFILE_URL, fields=ScrapingFields.MINIMAL
+            PROFILE_URL, fields=PersonScrapingFields.MINIMAL
         )
         print(f"Name: {person_minimal.name}")
         print(f"Headline: {person_minimal.headline}")
@@ -40,7 +40,7 @@ async def main():
         # Example 2: Career-focused scraping (basic info + experience + education)
         print("=== Career scraping (basic + experience + education) ===")
         person_career: Person = await session.get_profile(
-            PROFILE_URL, fields=ScrapingFields.CAREER
+            PROFILE_URL, fields=PersonScrapingFields.CAREER
         )
         print(f"Name: {person_career.name}")
         print(f"Experience count: {len(person_career.experiences)}")
@@ -50,9 +50,9 @@ async def main():
         # Example 3: Specific fields
         print("=== Custom field selection ===")
         custom_fields = (
-            ScrapingFields.BASIC_INFO
-            | ScrapingFields.EXPERIENCE
-            | ScrapingFields.CONTACTS
+            PersonScrapingFields.BASIC_INFO
+            | PersonScrapingFields.EXPERIENCE
+            | PersonScrapingFields.CONTACTS
         )
         person_custom: Person = await session.get_profile(
             PROFILE_URL, fields=custom_fields
@@ -65,7 +65,7 @@ async def main():
         # Example 4: All fields (slowest but most complete)
         print("=== All fields (complete profile) ===")
         person_all: Person = await session.get_profile(
-            PROFILE_URL, fields=ScrapingFields.ALL
+            PROFILE_URL, fields=PersonScrapingFields.ALL
         )
 
         # Print the complete person object as pretty JSON
