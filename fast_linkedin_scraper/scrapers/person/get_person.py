@@ -51,29 +51,47 @@ class PersonScraper:
 
         # Always scrape basic information (it's on the main page)
         if PersonScrapingFields.BASIC_INFO in fields:
-            await self._scrape_basic_info(person)
-            await self.page.wait_for_timeout(1000)  # 1 second between sections
+            try:
+                await self._scrape_basic_info(person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["basic_info"] = str(e)
 
-        # Conditionally scrape other fields
+        # Conditionally scrape other fields with error isolation
         if PersonScrapingFields.EXPERIENCE in fields:
-            await scrape_experiences(self.page, person)
-            await self.page.wait_for_timeout(1000)  # 1 second between sections
+            try:
+                await scrape_experiences(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["experience"] = str(e)
 
         if PersonScrapingFields.EDUCATION in fields:
-            await scrape_educations(self.page, person)
-            await self.page.wait_for_timeout(1000)  # 1 second between sections
+            try:
+                await scrape_educations(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["education"] = str(e)
 
         if PersonScrapingFields.INTERESTS in fields:
-            await scrape_interests(self.page, person)
-            await self.page.wait_for_timeout(1000)  # 1 second between sections
+            try:
+                await scrape_interests(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["interests"] = str(e)
 
         if PersonScrapingFields.ACCOMPLISHMENTS in fields:
-            await scrape_accomplishments(self.page, person)
-            await self.page.wait_for_timeout(1000)  # 1 second between sections
+            try:
+                await scrape_accomplishments(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["accomplishments"] = str(e)
 
         if PersonScrapingFields.CONTACTS in fields:
-            await scrape_contacts(self.page, person)
-            await self.page.wait_for_timeout(1000)  # 1 second between sections
+            try:
+                await scrape_contacts(self.page, person)
+                await self.page.wait_for_timeout(1000)  # 1 second between sections
+            except Exception as e:
+                person.scraping_errors["contacts"] = str(e)
 
         return person
 

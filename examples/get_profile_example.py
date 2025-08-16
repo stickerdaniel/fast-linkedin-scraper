@@ -71,6 +71,15 @@ async def main():
         # Print the complete person object as pretty JSON
         print(json.dumps(person_all.model_dump(), indent=2, default=str))
 
+        # Example 5: Error tracking demonstration
+        print("\n=== Error tracking ===")
+        if person_all.scraping_errors:
+            print("Scraping errors encountered:")
+            for field, error in person_all.scraping_errors.items():
+                print(f"  - {field}: {error}")
+        else:
+            print("No scraping errors encountered!")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

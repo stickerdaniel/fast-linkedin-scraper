@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -74,6 +74,7 @@ class Person(BaseModel):
     company: Optional[str] = None
     job_title: Optional[str] = None
     open_to_work: Optional[bool] = None
+    scraping_errors: Dict[str, str] = Field(default_factory=dict)
 
     def add_experience(self, experience: Experience) -> None:
         """Add an experience entry."""
