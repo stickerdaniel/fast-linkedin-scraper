@@ -1,8 +1,12 @@
 """Scraper for company employees with pagination support."""
 
-from playwright.async_api import Page, TimeoutError
 import re
+from urllib.parse import urljoin
 
+from playwright.async_api import Page, TimeoutError
+from pydantic import HttpUrl
+
+from ...config import BrowserConfig
 from ...models.company import Company, Employee
 
 
@@ -20,9 +24,12 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
 
     # If we're on /about page, navigate to /people first
     if "/about" in current_url:
-        people_url = current_url.split("/about")[0].rstrip("/") + "/people/"
+        base_url = current_url.split("/about")[0].rstrip("/")
+        people_url = urljoin(base_url + "/", "people/")
         await page.goto(people_url)
-        await page.wait_for_timeout(3000)  # Wait for people page to load
+        await page.wait_for_timeout(
+            BrowserConfig.WAIT_LONG
+        )  # Wait for people page to load
 
     # Try to click on the employees link to get to actual employee listings
     try:
@@ -30,7 +37,9 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
         employees_link = page.locator('a:has-text("employees")').first
         if await employees_link.is_visible():
             await employees_link.click()
-            await page.wait_for_timeout(3000)  # Wait for search results to load
+            await page.wait_for_timeout(
+                BrowserConfig.WAIT_LONG
+            )  # Wait for search results to load
     except Exception:
         # If we can't find the link, we might already be on search page or it failed
         pass
@@ -44,7 +53,9 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
         while page_num <= max_pages:
             # Wait for search results to load
             try:
-                await page.wait_for_selector("main [role='list'] > li", timeout=5000)
+                await page.wait_for_selector(
+                    "main [role='list'] > li", timeout=BrowserConfig.WAIT_TIMEOUT
+                )
             except TimeoutError:
                 # No results found
                 break
@@ -85,7 +96,7 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
                                 continue
 
                             processed_urls.add(profile_url)
-                            employee.linkedin_url = profile_url
+                            employee.linkedin_url = HttpUrl(profile_url)
 
                             # Try multiple strategies to get the name
                             name_text = None
@@ -164,7 +175,7 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
                         and await next_button.is_enabled()
                     ):
                         await next_button.click()
-                        await page.wait_for_timeout(3000)
+                        await page.wait_for_timeout(BrowserConfig.WAIT_LONG)
                         page_num += 1
                     else:
                         # No more pages

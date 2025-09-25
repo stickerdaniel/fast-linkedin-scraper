@@ -11,6 +11,12 @@ class BrowserConfig:
     VIEWPORT: ViewportSize = {"width": 1920, "height": 1080}
     TIMEOUT = 15000  # timeout in ms
 
+    # Wait time constants (in milliseconds)
+    WAIT_SHORT = 1000  # 1 second
+    WAIT_MEDIUM = 2000  # 2 seconds
+    WAIT_LONG = 3000  # 3 seconds
+    WAIT_TIMEOUT = 5000  # 5 seconds
+
     CHROME_ARGS = [
         "--no-sandbox",
         "--disable-blink-features=AutomationControlled",

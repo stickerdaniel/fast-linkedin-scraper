@@ -2,6 +2,11 @@
 
 import re
 from typing import Optional
+from urllib.parse import urljoin
+
+# Constants
+MAX_EMPLOYEE_COUNT = 10_000_000  # Maximum reasonable employee count
+K_NOTATION_MULTIPLIER = 1000  # For converting K notation (10K = 10,000)
 
 
 def extract_employee_count(text: str) -> Optional[int]:
@@ -23,9 +28,7 @@ def extract_employee_count(text: str) -> Optional[int]:
             try:
                 num = int(num_str.replace(",", ""))
                 # Return the first reasonable employee count (not year-like numbers)
-                if (
-                    num > 0 and num < 10000000
-                ):  # Max 10 million employees seems reasonable
+                if num > 0 and num < MAX_EMPLOYEE_COUNT:
                     return num
             except ValueError:
                 continue
@@ -46,7 +49,7 @@ def clean_company_url(url: str) -> str:
 
     # Add protocol if missing
     if not url.startswith("http"):
-        url = "https://www.linkedin.com" + url
+        url = urljoin("https://www.linkedin.com", url)
 
     # Remove query parameters
     url = url.split("?")[0]

@@ -1,5 +1,7 @@
 """Scraper for company about section and detailed information."""
 
+import re
+
 from playwright.async_api import Page
 
 from ...models.company import Company
@@ -88,8 +90,6 @@ async def scrape_company_details(page: Page, company: Company) -> None:
                             0
                         ]  # First dd is employee count
                         # Try to extract headcount from the employee count
-                        import re
-
                         numbers = re.findall(r"[\d,]+", dd_elements[0])
                         if numbers:
                             try:
@@ -124,8 +124,6 @@ async def scrape_company_details(page: Page, company: Company) -> None:
         employee_link = page.locator("a").filter(has_text="employees on LinkedIn")
         if await employee_link.is_visible():
             link_text = await employee_link.inner_text()
-            import re
-
             match = re.search(r"See all ([\d,]+) employees", link_text)
             if match:
                 try:

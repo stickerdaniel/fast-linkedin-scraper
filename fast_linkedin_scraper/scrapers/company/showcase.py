@@ -1,7 +1,11 @@
 """Scraper for showcase pages and affiliated companies."""
 
-from playwright.async_api import Page
+from urllib.parse import urljoin
 
+from playwright.async_api import Page
+from pydantic import HttpUrl
+
+from ...config import BrowserConfig
 from ...models.company import Company, CompanySummary
 
 
@@ -18,11 +22,10 @@ async def scrape_affiliated_pages(page: Page, company: Company) -> None:
     # Ensure we're on the about page
     current_url = page.url
     if not current_url.endswith("/about/"):
-        about_url = (
-            current_url.split("/people")[0].split("/about")[0].rstrip("/") + "/about/"
-        )
+        base_url = current_url.split("/people")[0].split("/about")[0].rstrip("/")
+        about_url = urljoin(base_url + "/", "about/")
         await page.goto(about_url)
-        await page.wait_for_timeout(2000)
+        await page.wait_for_timeout(BrowserConfig.WAIT_MEDIUM)
 
     try:
         # Look for the "Affiliated pages" heading
@@ -54,7 +57,7 @@ async def scrape_affiliated_pages(page: Page, company: Company) -> None:
             )
             if await show_all_btn.is_visible():
                 await show_all_btn.click()
-                await page.wait_for_timeout(1000)
+                await page.wait_for_timeout(BrowserConfig.WAIT_SHORT)
         except Exception:
             pass
 
@@ -89,7 +92,7 @@ async def scrape_affiliated_pages(page: Page, company: Company) -> None:
                     continue
 
                 if not url.startswith("http"):
-                    url = "https://www.linkedin.com" + url
+                    url = urljoin("https://www.linkedin.com", url)
                 url = url.split("?")[0]  # Remove query parameters
 
                 # Extract text content
@@ -117,7 +120,8 @@ async def scrape_affiliated_pages(page: Page, company: Company) -> None:
                 # Create the summary object
                 page_summary = CompanySummary()
                 page_summary.name = name
-                page_summary.linkedin_url = url
+                if url:
+                    page_summary.linkedin_url = HttpUrl(url)
                 if followers:
                     page_summary.followers = followers
 
