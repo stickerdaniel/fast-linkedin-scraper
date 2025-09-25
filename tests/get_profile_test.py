@@ -36,7 +36,7 @@ async def main():
             )
 
             # Print the person object as pretty JSON
-            # print(json.dumps(person.model_dump(), indent=2, default=str))
+            print(json.dumps(person.model_dump(), indent=2, default=str))
 
             # Save the person object to a JSON file with auto-incrementing filename
             # Extract username from URL (e.g., "anistji" from "https://www.linkedin.com/in/anistji/")
@@ -61,8 +61,6 @@ async def main():
                 json.dump(
                     person.model_dump(), f, indent=2, default=str, ensure_ascii=False
                 )
-
-            print(f"Profile saved to: {filename}")
 
 
 if __name__ == "__main__":

@@ -52,3 +52,24 @@ class PersonScrapingFields(Flag):
     ALL = (
         BASIC_INFO | EXPERIENCE | EDUCATION | INTERESTS | ACCOMPLISHMENTS | CONTACTS
     )  # Complete profile (~30s)
+
+
+class CompanyScrapingFields(Flag):
+    """Navigation control flags for LinkedIn company profiles.
+
+    These flags control additional page navigations beyond the default /about page.
+    All available data from visited pages is always scraped.
+
+    - SHOWCASE_PAGES: Navigate to showcase company pages (~3s per page)
+    - AFFILIATED_COMPANIES: Navigate to affiliated company pages (~3s per page)
+
+    Note: Employee scraping is controlled via the max_pages parameter, not a field flag.
+    The /about page (containing name, industry, size, website, HQ, specialties, etc.) is always visited.
+    """
+
+    SHOWCASE_PAGES = auto()  # Navigate to showcase company pages
+    AFFILIATED_COMPANIES = auto()  # Navigate to affiliated company pages
+
+    # Presets for common use cases
+    MINIMAL = 0  # Just /about page - fastest (~3s)
+    ALL = SHOWCASE_PAGES | AFFILIATED_COMPANIES  # All additional navigations (~9s+)
