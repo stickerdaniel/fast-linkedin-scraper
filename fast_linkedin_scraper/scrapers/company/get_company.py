@@ -10,6 +10,7 @@ from ...config import BrowserConfig, CompanyScrapingFields
 from ...models.company import Company
 from .about import scrape_company_details
 from .employees import scrape_employees
+from .followers import scrape_company_followers
 from .showcase import scrape_affiliated_pages
 from .utils import K_NOTATION_MULTIPLIER
 
@@ -74,17 +75,21 @@ class CompanyScraper:
         except Exception as e:
             company.scraping_errors["details"] = str(e)
 
-        # LinkedIn now combines showcase and affiliated pages in one section
-        # So we only need to scrape once if either flag is set
-        if (
-            CompanyScrapingFields.SHOWCASE_PAGES in fields
-            or CompanyScrapingFields.AFFILIATED_COMPANIES in fields
-        ):
+        # Scrape affiliated pages (showcase pages + affiliated companies)
+        # Always scrapes sidebar, optionally clicks "Show all" for comprehensive modal data
+        try:
+            await scrape_affiliated_pages(self.page, company, fields)
+            await self.page.wait_for_timeout(BrowserConfig.WAIT_SHORT)
+        except Exception as e:
+            company.scraping_errors["affiliated_pages"] = str(e)
+
+        # Scrape company followers if flag is set
+        if CompanyScrapingFields.FOLLOWER_DETAILS in fields:
             try:
-                await scrape_affiliated_pages(self.page, company)
+                await scrape_company_followers(self.page, company, url_str)
                 await self.page.wait_for_timeout(BrowserConfig.WAIT_SHORT)
             except Exception as e:
-                company.scraping_errors["affiliated_pages"] = str(e)
+                company.scraping_errors["followers"] = str(e)
 
         # Scrape employees if max_pages > 0
         if max_pages > 0:

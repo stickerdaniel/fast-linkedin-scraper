@@ -142,21 +142,21 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
                                 if name and len(name) > 0:
                                     employee.name = name
 
-                    # Get employee designation/position
+                    # Get employee headline/position
                     # The job title is in a div with specific styling classes
                     position_element = item.locator("div.t-14.t-black.t-normal").first
                     if await position_element.count() > 0:
-                        designation = (await position_element.inner_text()).strip()
-                        # Clean the designation - remove any extraneous text
-                        if designation and designation != employee.name:
-                            # Sometimes the designation includes location or other info on same line
+                        headline = (await position_element.inner_text()).strip()
+                        # Clean the headline - remove any extraneous text
+                        if headline and headline != employee.name:
+                            # Sometimes the headline includes location or other info on same line
                             # Take only the job title part (before any location indicators)
-                            designation = (
-                                designation.split(" at ")[0].strip()
-                                if " at " in designation
-                                else designation
+                            headline = (
+                                headline.split(" at ")[0].strip()
+                                if " at " in headline
+                                else headline
                             )
-                            employee.designation = designation
+                            employee.headline = headline
 
                     # Add employee to company if we got at least a name
                     if employee.name:

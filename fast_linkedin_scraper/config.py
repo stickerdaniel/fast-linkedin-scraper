@@ -66,16 +66,19 @@ class CompanyScrapingFields(Flag):
     These flags control additional page navigations beyond the default /about page.
     All available data from visited pages is always scraped.
 
-    - SHOWCASE_PAGES: Navigate to showcase company pages (~3s per page)
-    - AFFILIATED_COMPANIES: Navigate to affiliated company pages (~3s per page)
+    - AFFILIATED_PAGES: Click "Show all" modal for comprehensive showcase pages and affiliated companies (~5s)
+    - FOLLOWER_DETAILS: Scrape detailed list of people who follow the company (~10s for 100 followers)
 
     Note: Employee scraping is controlled via the max_pages parameter, not a field flag.
     The /about page (containing name, industry, size, website, HQ, specialties, etc.) is always visited.
+    Without flags, sidebar shows 3-5 affiliated pages from the /about page.
     """
 
-    SHOWCASE_PAGES = auto()  # Navigate to showcase company pages
-    AFFILIATED_COMPANIES = auto()  # Navigate to affiliated company pages
+    AFFILIATED_PAGES = (
+        auto()
+    )  # Click "Show all" for comprehensive affiliated pages data
+    FOLLOWER_DETAILS = auto()  # Scrape people who follow the main company
 
     # Presets for common use cases
-    MINIMAL = 0  # Just /about page - fastest (~3s)
-    ALL = SHOWCASE_PAGES | AFFILIATED_COMPANIES  # All additional navigations (~9s+)
+    MINIMAL = 0  # Just /about page with sidebar data - fastest (~3s)
+    ALL = AFFILIATED_PAGES | FOLLOWER_DETAILS  # All additional navigations (~20s+)

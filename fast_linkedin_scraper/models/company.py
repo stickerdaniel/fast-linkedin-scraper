@@ -7,8 +7,16 @@ class Employee(BaseModel):
     """Employee information."""
 
     name: Optional[str] = None
-    designation: Optional[str] = None
+    headline: Optional[str] = None
     linkedin_url: Optional[HttpUrl] = None
+
+
+class Follower(BaseModel):
+    """Person who follows a company."""
+
+    name: str
+    headline: Optional[str] = None
+    linkedin_url: HttpUrl
 
 
 class CompanySummary(BaseModel):
@@ -16,7 +24,6 @@ class CompanySummary(BaseModel):
 
     name: Optional[str] = None
     linkedin_url: Optional[HttpUrl] = None
-    followers: Optional[str] = None
 
 
 class Company(BaseModel):
@@ -33,6 +40,7 @@ class Company(BaseModel):
     headcount: Optional[int] = None
     showcase_pages: List[CompanySummary] = Field(default_factory=list)
     affiliated_companies: List[CompanySummary] = Field(default_factory=list)
+    followers: List[Follower] = Field(default_factory=list)
     employees: List[Employee] = Field(default_factory=list)
     scraping_errors: Dict[str, str] = Field(default_factory=dict)
 
