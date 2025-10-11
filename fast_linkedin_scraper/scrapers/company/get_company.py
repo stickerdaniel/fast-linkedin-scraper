@@ -11,6 +11,7 @@ from ...models.company import Company
 from .about import scrape_company_details
 from .employees import scrape_employees
 from .showcase import scrape_affiliated_pages
+from .utils import K_NOTATION_MULTIPLIER
 
 
 class CompanyScraper:
@@ -110,38 +111,14 @@ class CompanyScraper:
             # h1 might not be visible yet, skip
             pass
 
-        # Get industry from the header - it's right after the company name
+        # Get industry from the header - it's the first info-list item
         try:
-            # The industry appears after · in the header section
-            industry_element = self.page.locator("text='· Software Development'").first
-            if not await industry_element.is_visible():
-                # Try a more generic approach
-                industry_element = (
-                    self.page.locator("h1")
-                    .locator("..")
-                    .locator("..")
-                    .locator("text=/·\\s+[A-Za-z]/")
-                    .first
-                )
-
+            # The industry is always the first item in the info list
+            industry_element = self.page.locator(
+                ".org-top-card-summary-info-list__info-item"
+            ).first
             if await industry_element.is_visible():
-                text = await industry_element.inner_text()
-                # Extract the part after ·
-                if "·" in text:
-                    industry = text.split("·")[1].strip()
-                    # Make sure it's the industry and not something else
-                    if industry and not any(
-                        x in industry.lower()
-                        for x in [
-                            "followers",
-                            "employees",
-                            "ca",
-                            "ny",
-                            "wa",
-                            "mountain",
-                        ]
-                    ):
-                        company.industry = industry
+                company.industry = (await industry_element.inner_text()).strip()
         except Exception:
             pass
 
@@ -163,8 +140,6 @@ class CompanyScraper:
                             num_str = numbers[0].replace(",", "")
                             if "k" in clean_text.lower():
                                 # Convert K notation using constant
-                                from .utils import K_NOTATION_MULTIPLIER
-
                                 company.headcount = int(
                                     float(num_str) * K_NOTATION_MULTIPLIER
                                 )

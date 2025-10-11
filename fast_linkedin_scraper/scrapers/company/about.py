@@ -111,12 +111,10 @@ async def scrape_company_details(page: Page, company: Company) -> None:
                         s.strip() for s in value_text.split(",") if s.strip()
                     ]
                     company.specialties = specialties
-            except Exception as e:
-                # Log the error for debugging
-                print(f"Error processing dt/dd pair {i}: {e}")
+            except Exception:
+                # Skip errors in individual dt/dd pairs
                 continue
-    except Exception as e:
-        print(f"Error in dt/dd processing: {e}")
+    except Exception:
         pass
 
     # Try to get employee count from the "See all X employees on LinkedIn" link
