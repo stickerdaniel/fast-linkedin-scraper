@@ -35,7 +35,7 @@ OUTPUT_DIR = "output"
 
 async def main():
     assert cookie is not None  # Type narrowing for type checker
-    async with LinkedInSession.from_cookie(cookie, headless=True) as session:
+    async with LinkedInSession.from_cookie(cookie, headless=False) as session:
         # Get authenticated Playwright page
         page = session._ensure_authenticated()
 
@@ -63,13 +63,14 @@ async def main():
                 )
                 counter += 1
 
+            # Print the person object as pretty JSON
+            print(json.dumps(person.model_dump(), indent=2, default=str))
+
             # Write Person model to JSON
             with open(filename, "w", encoding="utf-8") as f:
                 json.dump(
                     person.model_dump(), f, indent=2, default=str, ensure_ascii=False
                 )
-
-            print(f"Contacts saved to: {filename}")
 
 
 if __name__ == "__main__":

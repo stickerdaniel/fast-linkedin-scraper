@@ -11,6 +11,12 @@ class BrowserConfig:
     VIEWPORT: ViewportSize = {"width": 1920, "height": 1080}
     TIMEOUT = 15000  # timeout in ms
 
+    # Wait time constants (in milliseconds)
+    WAIT_SHORT = 1000  # 1 second
+    WAIT_MEDIUM = 2000  # 2 seconds
+    WAIT_LONG = 3000  # 3 seconds
+    WAIT_TIMEOUT = 5000  # 5 seconds
+
     CHROME_ARGS = [
         "--no-sandbox",
         "--disable-blink-features=AutomationControlled",
@@ -52,3 +58,27 @@ class PersonScrapingFields(Flag):
     ALL = (
         BASIC_INFO | EXPERIENCE | EDUCATION | INTERESTS | ACCOMPLISHMENTS | CONTACTS
     )  # Complete profile (~30s)
+
+
+class CompanyScrapingFields(Flag):
+    """Navigation control flags for LinkedIn company profiles.
+
+    These flags control additional page navigations beyond the default /about page.
+    All available data from visited pages is always scraped.
+
+    - AFFILIATED_PAGES: Click "Show all" modal for comprehensive showcase pages and affiliated companies (~5s)
+    - FOLLOWER_DETAILS: Scrape detailed list of people who follow the company (~10s for 100 followers)
+
+    Note: Employee scraping is controlled via the max_pages parameter, not a field flag.
+    The /about page (containing name, industry, size, website, HQ, specialties, etc.) is always visited.
+    Without flags, sidebar shows 3-5 affiliated pages from the /about page.
+    """
+
+    AFFILIATED_PAGES = (
+        auto()
+    )  # Click "Show all" for comprehensive affiliated pages data
+    FOLLOWER_DETAILS = auto()  # Scrape people who follow the main company
+
+    # Presets for common use cases
+    MINIMAL = 0  # Just /about page with sidebar data - fastest (~3s)
+    ALL = AFFILIATED_PAGES | FOLLOWER_DETAILS  # All additional navigations (~20s+)

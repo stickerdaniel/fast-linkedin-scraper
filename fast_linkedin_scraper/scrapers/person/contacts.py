@@ -7,6 +7,7 @@ from pydantic import HttpUrl
 
 from ...models.common import Connection, ContactInfo
 from ...models.person import Person
+from ..company.utils import normalize_profile_url
 
 
 async def scrape_contacts(page: Page, person: Person) -> None:
@@ -275,7 +276,7 @@ async def _scrape_connections_list(page: Page, person: Person) -> None:
                         )
                         if not href or "/in/" not in href:
                             continue
-                        clean_url = href.split("?")[0]
+                        clean_url = normalize_profile_url(href)
                         if clean_url in seen_urls:
                             continue
                         seen_urls.add(clean_url)
@@ -329,7 +330,7 @@ async def _scrape_connections_list(page: Page, person: Person) -> None:
                         )
                         if not href or "/in/" not in href:
                             continue
-                        clean_url = href.split("?")[0]
+                        clean_url = normalize_profile_url(href)
                         if clean_url in seen_urls:
                             continue
                         seen_urls.add(clean_url)
@@ -397,7 +398,7 @@ async def _scrape_connections_list(page: Page, person: Person) -> None:
                     continue
 
                 # Clean URL (remove query parameters)
-                clean_url = href.split("?")[0]
+                clean_url = normalize_profile_url(href)
                 if clean_url in seen_urls:
                     continue
                 seen_urls.add(clean_url)

@@ -82,11 +82,243 @@ asyncio.run(main())
 - Education history with degrees and institutions
 - Robust content deduplication and cleaning
 
+**Company Extraction** ✅ Fully Implemented
+- Basic company information (name, about, industry, size, headquarters)
+- Company details (website, specialties, headcount)
+- Employee scraping with pagination control and job titles
+- Showcase pages and affiliated companies extraction
+- Efficient navigation-based field configuration (flags control page visits, not data extraction)
+- For every page visited, all available data is extracted
+
+### Company Scraping Example
+
+```python
+import asyncio
+import json
+from fast_linkedin_scraper import LinkedInSession
+from fast_linkedin_scraper.config import CompanyScrapingFields
+
+async def scrape_company():
+    async with LinkedInSession.from_cookie(li_at_cookie) as session:
+        # Minimal - just /about page data (fastest)
+        company = await session.get_company(
+            "https://www.linkedin.com/company/microsoft/",
+            fields=CompanyScrapingFields.MINIMAL,  # No additional navigations
+            max_pages=0  # No employee scraping
+        )
+        print(json.dumps(company.model_dump(), indent=2, default=str))
+
+        # Include showcase/affiliated pages
+        company = await session.get_company(
+            "https://www.linkedin.com/company/google/",
+            fields=CompanyScrapingFields.ALL,  # Navigate to showcase/affiliated
+            max_pages=3  # Also get ~30 employees (3 pages)
+        )
+
+        # Just employees, no showcase/affiliated
+        company = await session.get_company(
+            "https://www.linkedin.com/company/apple/",
+            fields=CompanyScrapingFields.MINIMAL,
+            max_pages=5  # Get ~50 employees
+        )
+
+        print(f"Company: {company.name}")
+        print(f"Employees scraped: {len(company.employees)}")
+
+asyncio.run(scrape_company())
+```
+
+### Company Profile Output Examples
+
+<details>
+<summary>Basic Company Information (fields=MINIMAL, max_pages=0)</summary>
+
+```json
+{
+  "linkedin_url": "https://www.linkedin.com/company/microsoft/",
+  "name": "Microsoft",
+  "about_us": "Every company has a mission. What's ours? To empower every person and every organization to achieve more...",
+  "website": "https://news.microsoft.com/",
+  "headquarters": "Redmond, Washington",
+  "industry": "Software Development",
+  "company_size": "10,001+ employees",
+  "specialties": [
+    "Business Software",
+    "Developer Tools",
+    "Home & Educational Software",
+    "Cloud Computing",
+    "Artificial Intelligence",
+    "Machine Learning"
+  ],
+  "headcount": 10001,
+  "showcase_pages": [],
+  "affiliated_companies": [],
+  "employees": []
+}
+```
+</details>
+
+<details>
+<summary>Company with Showcase/Affiliated Pages (fields=ALL, max_pages=0)</summary>
+
+```json
+{
+  "name": "Microsoft",
+  "industry": "Software Development",
+  "showcase_pages": [
+    {
+      "name": "Microsoft Military Affairs",
+      "linkedin_url": "https://www.linkedin.com/showcase/microsoft-military-affairs/",
+      "followers": null
+    },
+    {
+      "name": "Microsoft On the Issues",
+      "linkedin_url": "https://www.linkedin.com/showcase/microsoft-on-the-issues/",
+      "followers": null
+    }
+  ],
+  "affiliated_companies": [
+    {
+      "name": "Skype",
+      "linkedin_url": "https://www.linkedin.com/company/skype/",
+      "followers": null
+    }
+  ],
+  "employees": []
+}
+```
+</details>
+
+<details>
+<summary>Company with Employees (fields=MINIMAL, max_pages=2)</summary>
+
+```json
+{
+  "name": "Microsoft",
+  "industry": "Software Development",
+  "employees": [
+    {
+      "name": "Christian Remmelberger",
+      "designation": "CS @ TUM | SWE @ Microsoft",
+      "linkedin_url": "https://www.linkedin.com/in/christian-remmelberger"
+    },
+    {
+      "name": "Zhou Wang",
+      "designation": "Principal Software Engineer",
+      "linkedin_url": "https://www.linkedin.com/in/zhou-wang-9bb24952"
+    },
+    {
+      "name": "Laetitia Maar",
+      "designation": "Solution Engineer | Cloud & AI Apps | Microsoft",
+      "linkedin_url": "https://www.linkedin.com/in/laetitia-maar-4a98a11b6"
+    }
+  ]
+}
+```
+</details>
+
+<details>
+<summary>Complete Company Profile (fields=ALL, max_pages=2)</summary>
+
+```json
+{
+  "linkedin_url": "https://www.linkedin.com/company/microsoft/",
+  "name": "Microsoft",
+  "about_us": "Every company has a mission. What's ours? To empower every person and every organization to achieve more. We believe technology can and should be a force for good...",
+  "website": "https://news.microsoft.com/",
+  "headquarters": "Redmond, Washington",
+  "industry": "Software Development",
+  "company_size": "10,001+ employees",
+  "specialties": [
+    "Business Software",
+    "Developer Tools",
+    "Home & Educational Software",
+    "Tablets",
+    "Search",
+    "Advertising",
+    "Servers",
+    "Windows Operating System",
+    "Windows Applications & Platforms",
+    "Smartphones",
+    "Cloud Computing",
+    "Quantum Computing",
+    "Future of Work",
+    "Productivity",
+    "AI",
+    "Artificial Intelligence",
+    "Machine Learning",
+    "Laptops",
+    "Mixed Reality",
+    "Virtual Reality",
+    "Gaming",
+    "Developers",
+    "and IT Professional"
+  ],
+  "headcount": 10001,
+  "showcase_pages": [
+    {
+      "name": "Microsoft Military Affairs",
+      "linkedin_url": "https://www.linkedin.com/showcase/microsoft-military-affairs/"
+    },
+    {
+      "name": "Microsoft On the Issues",
+      "linkedin_url": "https://www.linkedin.com/showcase/microsoft-on-the-issues/"
+    }
+  ],
+  "affiliated_companies": [
+    {
+      "name": "Skype",
+      "linkedin_url": "https://www.linkedin.com/company/skype/"
+    }
+  ],
+  "employees": [
+    {
+      "name": "Christian Remmelberger",
+      "designation": "CS @ TUM | SWE @ Microsoft",
+      "linkedin_url": "https://www.linkedin.com/in/christian-remmelberger"
+    },
+    {
+      "name": "Zhou Wang",
+      "designation": "Principal Software Engineer",
+      "linkedin_url": "https://www.linkedin.com/in/zhou-wang-9bb24952"
+    }
+  ]
+}
+```
+</details>
+
+### Company Fields Documentation
+
+| Field | Type | Description | Navigation Required |
+|-------|------|-------------|--------------------|
+| `name` | string | Company name | Always from /about |
+| `linkedin_url` | string | Company LinkedIn URL | Always from /about |
+| `about_us` | string | Company description/mission | Always from /about |
+| `website` | string | Company website URL | Always from /about |
+| `headquarters` | string | Company HQ location | Always from /about |
+| `industry` | string | Primary industry | Always from /about |
+| `company_size` | string | Employee range (e.g., "10,001+") | Always from /about |
+| `specialties` | list[string] | Areas of expertise | Always from /about |
+| `headcount` | integer | Numeric employee count | Always from /about |
+| `showcase_pages` | list[CompanySummary] | Showcase/brand pages | Requires `ALL` flag |
+| `affiliated_companies` | list[CompanySummary] | Affiliated companies | Requires `ALL` flag |
+| `employees` | list[Employee] | Employee profiles | Controlled by `max_pages` |
+
+### Scraping Performance Guide
+
+| Configuration | Time | Data Scraped |
+|--------------|------|-------------|
+| `fields=MINIMAL, max_pages=0` | ~3s | All /about page data (name, industry, website, HQ, etc.) |
+| `fields=ALL, max_pages=0` | ~9s+ | /about + showcase/affiliated pages |
+| `fields=MINIMAL, max_pages=1` | ~6s | /about data + ~10 employees (default) |
+| `fields=ALL, max_pages=5` | ~24s+ | All pages + ~50 employees |
+
 ## Roadmap
 
-- Company profile scraping
 - Job search and extraction
 - Connection and network analysis
+- Advanced search filters
+- Bulk profile processing
 
 ## License
 

@@ -48,6 +48,20 @@
                 "focus": true
             },
             "problemMatcher": []
+        },
+        {
+            "label": "uv run tests/get_company_test.py",
+            "detail": "Test LinkedIn company scraping",
+            "type": "shell",
+            "command": "uv",
+            "args": ["run", "tests/get_company_test.py"],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
         }
     ]
 }

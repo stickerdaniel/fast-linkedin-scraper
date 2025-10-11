@@ -2,6 +2,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
+# Constants
+MIN_FOUNDED_YEAR = 1800  # Earliest reasonable founding year
+MAX_FOUNDED_YEAR = 2030  # Latest reasonable founding year
+
 
 class ContactInfo(BaseModel):
     """Contact information (email, phone, website, etc.)."""
@@ -35,4 +39,4 @@ class Institution(BaseInstitution):
     type: Optional[str] = None
     headquarters: Optional[str] = None
     company_size: Optional[int] = Field(None, ge=1)
-    founded: Optional[int] = Field(None, ge=1800, le=2030)
+    founded: Optional[int] = Field(None, ge=MIN_FOUNDED_YEAR, le=MAX_FOUNDED_YEAR)

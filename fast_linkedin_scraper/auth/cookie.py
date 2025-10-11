@@ -1,3 +1,5 @@
+import re
+
 from playwright.async_api import BrowserContext, Page
 
 from ..exceptions import InvalidCredentialsError
@@ -85,8 +87,6 @@ class CookieAuth(LinkedInAuth):
         Returns:
             True if cookie appears to have valid format
         """
-        import re
-
         if len(self.cookie) < 100:  # LinkedIn cookies are quite long
             return False
 

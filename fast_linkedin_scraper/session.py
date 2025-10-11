@@ -4,7 +4,8 @@ from playwright.async_api import Page
 
 from .auth import CookieAuth, LinkedInAuth, PasswordAuth
 from .browser import BrowserContextManager
-from .config import PersonScrapingFields
+from .config import CompanyScrapingFields, PersonScrapingFields
+from .models.company import Company
 from .models.person import Person
 
 
@@ -105,19 +106,30 @@ class LinkedInSession:
         scraper: PersonScraper = PersonScraper(page)
         return await scraper.scrape_profile(url, fields)
 
-    async def get_company(self, url: str) -> dict:
+    async def get_company(
+        self,
+        url: str,
+        fields: CompanyScrapingFields = CompanyScrapingFields.MINIMAL,
+        max_pages: int = 1,
+    ) -> Company:
         """Get LinkedIn company data.
 
         Args:
             url: LinkedIn company URL
+            fields: CompanyScrapingFields enum specifying which fields to scrape
+            max_pages: Maximum number of employee pages to scrape (0 = no employees, default 1)
 
         Returns:
-            Company data dictionary
+            Company object with scraped company data
 
         Raises:
             RuntimeError: If not authenticated
         """
-        raise NotImplementedError("Company scraping not yet implemented")
+        from .scrapers.company import CompanyScraper
+
+        page: Page = self._ensure_authenticated()
+        scraper: CompanyScraper = CompanyScraper(page)
+        return await scraper.scrape_profile(url, fields, max_pages)
 
     async def search_jobs(
         self, keywords: str, location: str = "", limit: int = 25
