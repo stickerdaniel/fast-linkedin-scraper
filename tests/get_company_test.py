@@ -23,7 +23,7 @@ async def test_company_scraping():
         print("Error: LI_AT_COOKIE environment variable not set")
         return
 
-    # Test company URL - using Google as example
+    # Test company URL
     company_url = "https://www.linkedin.com/company/microsoft/"
 
     # Create output directory

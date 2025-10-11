@@ -16,7 +16,6 @@ cookie = os.getenv("LI_AT_COOKIE")
 assert cookie is not None
 # Profile URLs to scrape
 USERNAMES = [
-    # "rayan-siddiqui-511822303",
     "anistji",
     "stickerdaniel",
 ]
