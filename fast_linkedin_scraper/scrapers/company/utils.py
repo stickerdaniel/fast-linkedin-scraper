@@ -117,3 +117,33 @@ def normalize_industry(industry_text: str) -> str:
     industry_text = re.sub(r"\s+Industry$", "", industry_text, flags=re.IGNORECASE)
 
     return industry_text.strip()
+
+
+def normalize_profile_url(url: str) -> str:
+    """Normalize a LinkedIn profile URL to prevent duplicates.
+
+    Removes query parameters, fragments, trailing slashes and converts to lowercase.
+
+    Args:
+        url: Raw LinkedIn profile URL
+
+    Returns:
+        Normalized URL
+    """
+    if not url:
+        return url
+
+    # Add protocol if missing
+    if not url.startswith("http"):
+        url = urljoin("https://www.linkedin.com", url)
+
+    # Remove query parameters and fragments
+    url = url.split("?")[0].split("#")[0]
+
+    # Remove trailing slashes
+    url = url.rstrip("/")
+
+    # Convert to lowercase for case-insensitive comparison
+    url = url.lower()
+
+    return url

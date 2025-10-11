@@ -1,12 +1,11 @@
 """Scraper for company followers (people who follow the company)."""
 
-from urllib.parse import urljoin
-
 from playwright.async_api import Page
 from pydantic import HttpUrl
 
 from ...config import BrowserConfig
 from ...models.company import Company, Follower
+from .utils import normalize_profile_url
 
 
 async def scrape_company_followers(
@@ -70,10 +69,8 @@ async def scrape_company_followers(
                 if not url:
                     continue
 
-                # Normalize URL
-                if not url.startswith("http"):
-                    url = urljoin("https://www.linkedin.com", url)
-                url = url.split("?")[0].rstrip("/")
+                # Normalize URL to prevent duplicates
+                url = normalize_profile_url(url)
 
                 # Get all text divs inside the link
                 divs = link.locator("div")

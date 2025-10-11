@@ -7,6 +7,7 @@ from pydantic import HttpUrl
 
 from ...config import BrowserConfig, CompanyScrapingFields
 from ...models.company import Company, CompanySummary
+from .utils import clean_company_url
 
 
 async def scrape_affiliated_pages(
@@ -86,9 +87,8 @@ async def scrape_affiliated_pages(
                 if not url:
                     continue
 
-                if not url.startswith("http"):
-                    url = urljoin("https://www.linkedin.com", url)
-                url = url.split("?")[0]  # Remove query parameters
+                # Clean and normalize URL
+                url = clean_company_url(url)
 
                 # Extract text content
                 link_text = (await text_link.inner_text()).strip()
@@ -169,11 +169,9 @@ async def scrape_affiliated_pages(
                                         continue
 
                                     # Clean and normalize URL
-                                    if not url.startswith("http"):
-                                        url = urljoin("https://www.linkedin.com", url)
+                                    url = clean_company_url(url)
                                     # Normalize to HTTPS (LinkedIn uses HTTPS, but some links might have HTTP)
                                     url = url.replace("http://", "https://")
-                                    url = url.split("?")[0].rstrip("/")
 
                                     # Get link text
                                     link_text = await link.inner_text()
@@ -213,7 +211,10 @@ async def scrape_affiliated_pages(
                                         if "Acquisition" in link_text:
                                             company_data[url]["is_acquisition"] = True
 
-                                except Exception:
+                                except Exception as e:
+                                    # Track error for debugging but continue processing other links
+                                    error_key = f"showcase_link_extraction_{i}"
+                                    company.scraping_errors[error_key] = str(e)
                                     continue
 
                             # Pass 2: Process collected data to create CompanySummary objects

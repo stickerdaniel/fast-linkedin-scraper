@@ -8,6 +8,7 @@ from pydantic import HttpUrl
 
 from ...config import BrowserConfig
 from ...models.company import Company, Employee
+from .utils import normalize_profile_url
 
 
 async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> None:
@@ -85,18 +86,15 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
                     if await link_element.is_visible():
                         profile_url = await link_element.get_attribute("href")
                         if profile_url:
-                            # Clean up the URL
-                            if not profile_url.startswith("http"):
-                                profile_url = "https://www.linkedin.com" + profile_url
-                            # Remove query parameters
-                            profile_url = profile_url.split("?")[0]
+                            # Normalize the URL to prevent duplicates
+                            normalized_url = normalize_profile_url(profile_url)
 
                             # Skip if we've already processed this employee
-                            if profile_url in processed_urls:
+                            if normalized_url in processed_urls:
                                 continue
 
-                            processed_urls.add(profile_url)
-                            employee.linkedin_url = HttpUrl(profile_url)
+                            processed_urls.add(normalized_url)
+                            employee.linkedin_url = HttpUrl(normalized_url)
 
                             # Try multiple strategies to get the name
                             name_text = None
@@ -162,25 +160,26 @@ async def scrape_employees(page: Page, company: Company, max_pages: int = 1) -> 
                     if employee.name:
                         company.add_employee(employee)
 
-                except Exception:
+                except Exception as e:
+                    # Track error for debugging but continue processing other employees
+                    error_key = f"employee_extraction_{i}"
+                    company.scraping_errors[error_key] = str(e)
                     continue
 
             # Try to go to next page if we haven't reached max_pages
             if page_num < max_pages:
                 try:
-                    # Look for Next button
-                    next_button = page.locator('button:has-text("Next")').last
-                    if (
-                        await next_button.is_visible()
-                        and await next_button.is_enabled()
-                    ):
-                        await next_button.click()
-                        await page.wait_for_timeout(BrowserConfig.WAIT_LONG)
-                        page_num += 1
-                    else:
-                        # No more pages
-                        break
-                except Exception:
+                    # Look for Next button that is visible and enabled
+                    next_button = page.locator(
+                        'button:has-text("Next"):not([disabled])'
+                    ).last
+                    # Wait for button to be visible and clickable, with a short timeout
+                    await next_button.wait_for(state="visible", timeout=2000)
+                    await next_button.click()
+                    await page.wait_for_timeout(BrowserConfig.WAIT_LONG)
+                    page_num += 1
+                except (TimeoutError, Exception):
+                    # No more pages or button not clickable
                     break
             else:
                 break

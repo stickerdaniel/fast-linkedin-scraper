@@ -3,6 +3,7 @@
 import re
 
 from playwright.async_api import Page
+from pydantic import HttpUrl, ValidationError
 
 from ...models.company import Company
 
@@ -80,7 +81,13 @@ async def scrape_company_details(page: Page, company: Company) -> None:
 
                 if label_text == "Website":
                     if value_text:
-                        company.website = value_text
+                        try:
+                            company.website = HttpUrl(value_text)
+                        except ValidationError:
+                            # Invalid URL, skip it
+                            company.scraping_errors["website"] = (
+                                f"Invalid URL: {value_text}"
+                            )
                 elif label_text == "Industry":
                     company.industry = value_text
                 elif label_text == "Company size":
@@ -111,11 +118,14 @@ async def scrape_company_details(page: Page, company: Company) -> None:
                         s.strip() for s in value_text.split(",") if s.strip()
                     ]
                     company.specialties = specialties
-            except Exception:
+            except Exception as e:
                 # Skip errors in individual dt/dd pairs
+                error_key = f"about_dt_dd_pair_{i}"
+                company.scraping_errors[error_key] = str(e)
                 continue
-    except Exception:
-        pass
+    except Exception as e:
+        # Track error in overall dt/dd processing
+        company.scraping_errors["about_dt_dd_processing"] = str(e)
 
     # Try to get employee count from the "See all X employees on LinkedIn" link
     try:
