@@ -24,7 +24,7 @@ async def test_company_scraping():
         return
 
     # Test company URL - using Google as example
-    company_url = "https://www.linkedin.com/company/google/"
+    company_url = "https://www.linkedin.com/company/microsoft/"
 
     # Create output directory
     output_dir = Path("tests/output")
