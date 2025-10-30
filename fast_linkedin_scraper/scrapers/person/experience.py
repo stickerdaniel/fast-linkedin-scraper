@@ -65,7 +65,7 @@ async def scrape_experiences(page: Page, person: Person) -> None:
                 position_details = elements[1]
 
                 # Extract company LinkedIn URL
-                company_linkedin_url = _extract_company_url(company_logo_elem)
+                company_linkedin_url = await _extract_company_url(company_logo_elem)
                 if not company_linkedin_url:
                     continue
 

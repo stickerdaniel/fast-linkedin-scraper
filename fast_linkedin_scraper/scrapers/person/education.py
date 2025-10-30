@@ -87,13 +87,13 @@ async def scrape_educations(page: Page, person: Person) -> None:
                 skills = []
                 if position_summary_text and await position_summary_text.is_visible():
                     raw_text = await position_summary_text.inner_text()
-                    print(f"DEBUG: Education raw text: {repr(raw_text)}")
+                    # print(f"DEBUG: Education raw text: {repr(raw_text)}")
                     # Clean single element duplicates before processing
                     cleaned_text = clean_single_string_duplicates(raw_text)
                     description, skills = extract_description_and_skills(cleaned_text)
-                    print(
-                        f"DEBUG: Education extracted - description: {repr(description)}, skills: {skills}"
-                    )
+                    # print(
+                    #     f"DEBUG: Education extracted - description: {repr(description)}, skills: {skills}"
+                    # )
 
                 # Create education object
                 education = Education(
