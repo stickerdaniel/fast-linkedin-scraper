@@ -1,5 +1,8 @@
 # Fast LinkedIn Scraper
 
+> [!WARNING]
+> This project is no longer maintained. I originally created this as a Playwright-based scraper for my [linkedin-mcp-server](https://github.com/stickerdaniel/linkedin-mcp-server). The [linkedin-scraper](https://github.com/joeyism/linkedin_scraper) library has since been rewritten with Playwright in v3.0, so I'm now using that instead.
+
 <p align="left">
   <a href="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
   <a href="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/release.yml" target="_blank"><img src="https://github.com/stickerdaniel/fast-linkedin-scraper/actions/workflows/release.yml/badge.svg?branch=main" alt="Release"></a>
